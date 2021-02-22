@@ -39,5 +39,7 @@ CHRSTR, .                       /1ST WORD IS ADDR OF STRING
         114                     /L
         104                     /D
         041                     /!
+        015                     /<CR>
+        012                     /<LF>
         000                     /<EOT>
 		$

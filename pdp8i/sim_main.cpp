@@ -66,6 +66,7 @@ int sim_load_bin (FILE *fi, uint16_t *M) {
 
 uint16_t *ram;
 int did_print = 0;
+int did_hlt_msg = 0;
 
 void load_core(const char *fname) {
 	printf("loading %s...", fname);
@@ -129,8 +130,9 @@ int main(int argc, char** argv, char** env) {
 	load_core("maindec-8i-d01c-pb.bin");
 
 	VL_PRINTF("running...\n");
+    uint64_t i = 0;
 #if VM_TRACE
-    for (int i = 0; i < 1000000; i++)
+    while (main_time < 236000000)
 #else
 	for (;;)
 #endif
@@ -169,7 +171,6 @@ int main(int argc, char** argv, char** env) {
 		if (main_time == 3400000) {
 			if (!top->run) {
 				printf("test failed\n");
-				//return -1;
 			} else
 				printf("test passed\n");
 		}
@@ -181,35 +182,75 @@ int main(int argc, char** argv, char** env) {
 
 		// load new paper tape
 		if (main_time == 3410000) {
-			//load_core("maindec-8i-d02b-pb.bin");
-			load_core("hello.bin");
-			top->sr = 0200;
+			load_core("maindec-8i-d02b-pb.bin");
+			top->sr = 0201;
 		}
 
 		// load the address
 		if (main_time > 3415000 && main_time < 3425000)
 			top->load_addr = 1;
 
-		// set sr
+		// set sr (not needed for D02B)
 		if (main_time == 3425000) {
 			printf("running...\n");
-			top->sr = 05000;
+			//top->sr = 05400;
 		}
 
 		// and run it!
 		if (main_time > 3425000 && main_time < 3435000)
 			top->start = 1;
 
-		if (main_time > 3435000 && !top->run) {
-			VL_PRINTF("\nhalted at time %" VL_PRI64 "d\n", main_time);
-			printf("pc: %o lac: %o ma: %o mb: %o mq: %o sc: %o if: %o df: %o\n", 
-				top->pc, top->lac, top->ma, top->mb, top->mq, top->sc, top->instf, top->dataf);
-			return 0;
+		// check to see if we're still running
+		if (main_time == 220000000) {
+			if (!top->run) {
+				printf("test failed\n");
+			} else
+				printf("test passed\n");
 		}
 
+		// halt it 
+		if (main_time > 220000000 && main_time < 220010000) {
+			top->stop = 1;
+		}
+
+		// load new paper tape
+		if (main_time == 220010000) {
+			load_core("hello.bin");
+			top->sr = 0200;
+		}
+
+		// load the address
+		if (main_time > 220015000 && main_time < 220025000)
+			top->load_addr = 1;
+
+		// set sr (not needed for D02B)
+		if (main_time == 220025000) {
+			printf("running...\n");
+			//top->sr = 05400;
+		}
+
+		// and run it!
+		if (main_time > 220025000 && main_time < 220035000)
+			top->start = 1;
+
+        // print status when halted
+        if (main_time > 45000 && !top->run && !did_hlt_msg) {
+            did_hlt_msg = 1;
+            VL_PRINTF("\nhalted at time %" VL_PRI64 "d\n", main_time);
+            printf("pc: %o lac: %o ma: %o mb: %o mq: %o sc: %o if: %o df: %o\n\n", 
+                top->pc, top->lac, top->ma, top->mb, top->mq, top->sc, top->instf, top->dataf);
+            if (main_time > 220045000)
+                return 0;
+        } else if (top->run) {
+            did_hlt_msg = 0;
+        }
+
+        // has a character been sent?
 		if (!top->top__DOT__pdp__DOT__ef02__DOT__load && !did_print) {
 			did_print = 1;
-			printf("%c", top->lac & 0177);
+            if ((top->lac & 0177) == 07) 
+                printf("\033[31;1m[ding!]\033[0m"); // bell
+            printf("%c", top->lac & 0177); // print it
 			fflush(stdout);
 		} else if (top->top__DOT__pdp__DOT__ef02__DOT__load) {
 			did_print = 0;
@@ -225,6 +266,7 @@ int main(int argc, char** argv, char** env) {
 			top->clk = !top->clk;
 			top->eval();
 		}
+        i++;
     }
 
 #if VM_TRACE
