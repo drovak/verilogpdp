@@ -65,6 +65,7 @@ int sim_load_bin (FILE *fi, uint16_t *M) {
 }
 
 uint16_t *ram;
+int did_print = 0;
 
 void load_core(const char *fname) {
 	printf("loading %s...", fname);
@@ -128,7 +129,11 @@ int main(int argc, char** argv, char** env) {
 	load_core("maindec-8i-d01c-pb.bin");
 
 	VL_PRINTF("running...\n");
-    for (int i = 0; i < 800000; i++)
+#if VM_TRACE
+    for (int i = 0; i < 1000000; i++)
+#else
+	for (;;)
+#endif
 	{
 		// disable reset after a bit
 		if (main_time > 2000)
@@ -164,7 +169,7 @@ int main(int argc, char** argv, char** env) {
 		if (main_time == 3400000) {
 			if (!top->run) {
 				printf("test failed\n");
-				return -1;
+				//return -1;
 			} else
 				printf("test passed\n");
 		}
@@ -176,7 +181,8 @@ int main(int argc, char** argv, char** env) {
 
 		// load new paper tape
 		if (main_time == 3410000) {
-			load_core("maindec-8i-d02b-pb.bin");
+			//load_core("maindec-8i-d02b-pb.bin");
+			load_core("hello.bin");
 			top->sr = 0200;
 		}
 
@@ -187,12 +193,27 @@ int main(int argc, char** argv, char** env) {
 		// set sr
 		if (main_time == 3425000) {
 			printf("running...\n");
-			top->sr = 04400;
+			top->sr = 05000;
 		}
 
 		// and run it!
 		if (main_time > 3425000 && main_time < 3435000)
 			top->start = 1;
+
+		if (main_time > 3435000 && !top->run) {
+			VL_PRINTF("\nhalted at time %" VL_PRI64 "d\n", main_time);
+			printf("pc: %o lac: %o ma: %o mb: %o mq: %o sc: %o if: %o df: %o\n", 
+				top->pc, top->lac, top->ma, top->mb, top->mq, top->sc, top->instf, top->dataf);
+			return 0;
+		}
+
+		if (!top->top__DOT__pdp__DOT__ef02__DOT__load && !did_print) {
+			did_print = 1;
+			printf("%c", top->lac & 0177);
+			fflush(stdout);
+		} else if (top->top__DOT__pdp__DOT__ef02__DOT__load) {
+			did_print = 0;
+		}
 
 		for (int clk = 0; clk < 2; clk++)
 		{

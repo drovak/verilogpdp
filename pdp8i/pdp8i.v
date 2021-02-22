@@ -127,6 +127,8 @@ mem core_mem(.clk(clk), .mem_start(b_mem_start), .mem_done_n(mem_done_low),
              .strobe_n(strobe_low), .addr({ea0, ea1, ea2, ma}), 
 			 .data_in(mb), .data_out(mem));
 
+wire [11:0] reg_bus;
+
 /*
 m703 a04(
 	.D2(mb03_low), .E2(mb04_low), .F2(mb05), .H2(mb06_low), 
@@ -899,7 +901,8 @@ m706 ef01(.AD2(mb03_low), .AE1(mb04_low),
 	.BE2(tt_ac_clr_low), .BF2(initialize), .BH2(tti_skip_low), .BJ2(iop2), 
 	.BM2(rx_data), .BR1(n3v_lp_33_rp_low), .BR2(in_stop_2_low), .BT2(clock_scale_2), 
 	.BU1(clock_scale_2), .BV2(in_stop_2_low));
-m707 ef02(.AE1(mb04_low), .AE2(mb03_low), 
+*/
+m707 ef02(.clk(clk), .AE1(mb04_low), .AE2(mb03_low), 
 	.AF1(mb06), .AF2(mb05_low), .AH1(enable_low), .AH2(mb07_low), 
 	.AJ2(mb08_low), .AK1(enable), .AK2(enable), .AL1(enable_low), 
 	.AL2(ac06), .AM2(ac07), .AN1(n3v_lp_33_rp_low), .AN2(n3v_lp_33_rp_low), 
@@ -908,8 +911,6 @@ m707 ef02(.AE1(mb04_low), .AE2(mb03_low),
 	.BD2(iop2), .BE2(initialize), .BF2(n3v_lp_33_rp_low), .BH2(iop1), 
 	.BJ1(n3v_lp_33_rp_low), .BJ2(tto_skip_low), .BK2(teleprinter_flag_low), .BN1(out_stop2_low), 
 	.BN2(out_stop2_low), .BP2(tto_clock_low), .BS2(n3v_lp_33_rp_low));
-*/
-wire [11:0] reg_bus;
 m700 ef10(.clk(clk), .AE2(mftp1), 
 	.AF2(mfts2), .AH2(mfts2_low), .AJ2(mfts1), .AK2(mfts1_low), 
 	.AL2(b_power_clear_low), .AM2(mfts0), .AP2(run_low), .AR2(restart_low), 
@@ -2608,7 +2609,7 @@ wire store_low = 1'b1;
 wire strobe_low;
 wire tad;
 wire tad_low;
-wire teleprinter_flag_low = 1'b1;
+wire teleprinter_flag_low;
 wire tp1;
 wire tp2;
 wire tp2e_low;
@@ -2656,7 +2657,7 @@ wire tti_clock;
 wire tti_data;
 wire tti_skip_low = 1'b1;
 wire tto_clock_low;
-wire tto_skip_low = 1'b1;
+wire tto_skip_low;
 wire tx_data;
 wire ub;
 wire uf;
