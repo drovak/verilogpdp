@@ -1,0 +1,6 @@
+*.zip
+*.gtkw
+*.swp
+logs/
+obj_dir/
+
