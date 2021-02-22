@@ -84,6 +84,43 @@ void load_core(const char *fname) {
 	printf("done\n");
 }
 
+#define WAS_RUNNING -1
+#define WAS_HALTED -2
+int do_test(Vtop *top, const char *fname, int start_addr, int init_sr, vluint64_t load_time) {
+    // check to see if we're still running
+    if (main_time == load_time) {
+        if (!top->run) {
+            //printf("already halted (failure?)\n");
+            return WAS_HALTED;
+        } else {
+            top->stop = 1;
+            return WAS_RUNNING;
+        }
+    }
+
+    // load new paper tape
+    if (main_time == (load_time + 10000)) {
+        load_core(fname);
+        top->sr = start_addr;
+    }
+
+    // load the address
+    if (main_time > (load_time + 10000) && main_time < (load_time + 15000))
+        top->load_addr = 1;
+
+    // set sr
+    if (main_time == (load_time + 15000)) {
+        printf("running...\n");
+        top->sr = init_sr;
+    }
+
+    // and run it!
+    if (main_time == (load_time + 15500))
+        top->start = 1;
+
+    return 0;
+}
+
 int main(int argc, char** argv, char** env) {
     if (false && argc && argv && env) {}
 
@@ -92,7 +129,7 @@ int main(int argc, char** argv, char** env) {
     Verilated::traceEverOn(true);
     Verilated::commandArgs(argc, argv);
 
-    const std::unique_ptr<Vtop> top{new Vtop};
+    Vtop *top = new Vtop;
 #if VM_TRACE
 	VerilatedVcdC* tfp = nullptr;
 	const char* flag = Verilated::commandArgsPlusMatch("trace");
@@ -126,10 +163,7 @@ int main(int argc, char** argv, char** env) {
 	for (int i = 0; i < 32768; i++)
 		ram[i] = 0;
 	
-	// initialize core with paper tape
-	load_core("maindec-8i-d01c-pb.bin");
-
-	VL_PRINTF("running...\n");
+	VL_PRINTF("starting simulation...\n");
     uint64_t i = 0;
 #if VM_TRACE
     while (main_time < 236000000)
@@ -142,105 +176,50 @@ int main(int argc, char** argv, char** env) {
 			top->rst = 0;
 
 		// and switch stop off
-		if (main_time > 10000)
+        if (!top->run)
 			top->stop = 0;
 
 		// default switch positions
 		top->load_addr = 0;
 		top->dep = 0;
 		top->exam = 0;
-		top->start = 0;
+        if (top->run) {
+            top->start = 0;
+            top->cont = 0;
+        }
 
-		// set SR for start of program
-		if (main_time == 10000)
-			top->sr = 0144;
+        int run_status;
 
-		// load the address
-		if (main_time > 15000 && main_time < 25000)
-			top->load_addr = 1;
+        run_status = do_test(top, "maindec-8i-d01c-pb.bin", 0144, 07777, 15000);
+        if (main_time == 41000) {
+            if (!top->run && top->pc == 0147 && !top->lac) {
+                printf("LAC clear, continuing...\n");
+                top->cont = 1;
+            } else {
+                printf("test failed\n");
+            }
+        }
 
-		// set sr
-		if (main_time == 25000)
-			top->sr = 07777;
+        run_status = do_test(top, "maindec-8i-d02b-pb.bin", 0201, 07777, 3400000);
+        if (run_status == WAS_HALTED) 
+            printf("test failed\n");
+        else if (run_status == WAS_RUNNING)
+            printf("test passed\n");
 
-		// and run it!
-		if (main_time > 25000 && main_time < 35000)
-			top->start = 1;
-
-		// check to see if we're still running
-		if (main_time == 3400000) {
-			if (!top->run) {
-				printf("test failed\n");
-			} else
-				printf("test passed\n");
-		}
-
-		// halt it 
-		if (main_time > 3400000 && main_time < 3410000) {
-			top->stop = 1;
-		}
-
-		// load new paper tape
-		if (main_time == 3410000) {
-			load_core("maindec-8i-d02b-pb.bin");
-			top->sr = 0201;
-		}
-
-		// load the address
-		if (main_time > 3415000 && main_time < 3425000)
-			top->load_addr = 1;
-
-		// set sr (not needed for D02B)
-		if (main_time == 3425000) {
-			printf("running...\n");
-			//top->sr = 05400;
-		}
-
-		// and run it!
-		if (main_time > 3425000 && main_time < 3435000)
-			top->start = 1;
-
-		// check to see if we're still running
-		if (main_time == 220000000) {
-			if (!top->run) {
-				printf("test failed\n");
-			} else
-				printf("test passed\n");
-		}
-
-		// halt it 
-		if (main_time > 220000000 && main_time < 220010000) {
-			top->stop = 1;
-		}
-
-		// load new paper tape
-		if (main_time == 220010000) {
-			load_core("hello.bin");
-			top->sr = 0200;
-		}
-
-		// load the address
-		if (main_time > 220015000 && main_time < 220025000)
-			top->load_addr = 1;
-
-		// set sr (not needed for D02B)
-		if (main_time == 220025000) {
-			printf("running...\n");
-			//top->sr = 05400;
-		}
-
-		// and run it!
-		if (main_time > 220025000 && main_time < 220035000)
-			top->start = 1;
+        run_status = do_test(top, "hello.bin", 0200, 07777, 220000000);
+        if (run_status == WAS_HALTED) 
+            printf("test failed\n");
+        else if (run_status == WAS_RUNNING)
+            printf("test passed\n");
 
         // print status when halted
-        if (main_time > 45000 && !top->run && !did_hlt_msg) {
+        if (main_time > 36000 && !top->run && !did_hlt_msg) {
             did_hlt_msg = 1;
             VL_PRINTF("\nhalted at time %" VL_PRI64 "d\n", main_time);
             printf("pc: %o lac: %o ma: %o mb: %o mq: %o sc: %o if: %o df: %o\n\n", 
                 top->pc, top->lac, top->ma, top->mb, top->mq, top->sc, top->instf, top->dataf);
             if (main_time > 220045000)
-                return 0;
+                break;
         } else if (top->run) {
             did_hlt_msg = 0;
         }
@@ -268,6 +247,8 @@ int main(int argc, char** argv, char** env) {
 		}
         i++;
     }
+
+    VL_PRINTF("\nexiting at time %" VL_PRI64 "d\n", main_time);
 
 #if VM_TRACE
 	if (tfp)

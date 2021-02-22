@@ -5,7 +5,7 @@ Equipment Corporation PDP series of computers
 Changelog:  
 20210222 KVO: Added TTY output support. Passes MAINDEC-8I-D01C and
 MAINDEC-8I-D02B! Also prints "hello world" after running both MAINDECs
-for a bit.
+for a bit. Cleaned up test suite.
 
 Currently features an incomplete PDP-8/I implementation. Very much a
 work-in-progress. 
