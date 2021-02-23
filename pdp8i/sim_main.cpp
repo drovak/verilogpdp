@@ -143,7 +143,7 @@ int main(int argc, char** argv, char** env) {
     top->clk = 0;
 	top->rst = 1;
 	top->start = 0;
-	top->stop = 1; // make sure the machine is halted on power-up
+	top->stop = 0;
 	top->cont = 0;
 	top->dep = 0;
 	top->dfsr = 0;
@@ -152,7 +152,7 @@ int main(int argc, char** argv, char** env) {
 	top->load_addr = 0;
 	top->sing_inst = 0;
 	top->sing_step = 0;
-	top->sr = 0; // initial SR setting
+	top->sr = 0; 
 	top->step = 0;
 
 	top->eval();
@@ -172,7 +172,7 @@ int main(int argc, char** argv, char** env) {
 #endif
 	{
 		// disable reset after a bit
-		if (main_time > 2000)
+		if (main_time > 5000)
 			top->rst = 0;
 
 		// and switch stop off
