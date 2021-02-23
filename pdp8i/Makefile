@@ -46,7 +46,7 @@ VERILATOR_FLAGS += -Wall
 #VERILATOR_FLAGS += --gdbbt
 
 # Input files for Verilator
-VERILATOR_INPUT = -f input.vc top.v -y modules sim_main.cpp
+VERILATOR_INPUT = -f input.vc top.v -y modules sim_main.cpp control.cpp
 
 ######################################################################
 default: run
