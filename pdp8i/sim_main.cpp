@@ -77,7 +77,8 @@ int main(int argc, char** argv, char** env) {
 
         int run_status;
 
-        run_status = do_test(top, "maindec-8i-d01c-pb.bin", 0144, 07777, main_time, 15000);
+        //run_status = do_test(top, "maindec/maindec-8i-d0aa-pb.bin", 0200, 05000, main_time, 15000);
+        run_status = do_test(top, "maindec/maindec-8i-d01c-pb.bin", 0144, 07777, main_time, 15000);
         if (main_time == 41000) {
             if (!top->run && top->pc == 0147 && !top->lac) {
                 printf("LAC clear, continuing...\n");
@@ -87,13 +88,13 @@ int main(int argc, char** argv, char** env) {
             }
         }
 
-        run_status = do_test(top, "maindec-8i-d02b-pb.bin", 0201, 07777, main_time, 3400000);
+        run_status = do_test(top, "maindec/maindec-8i-d02b-pb.bin", 0201, 07777, main_time, 3400000);
         if (run_status == WAS_HALTED) 
             printf("test failed\n");
         else if (run_status == WAS_RUNNING)
             printf("test passed\n");
 
-        run_status = do_test(top, "hello.bin", 0200, 07777, main_time, 220000000);
+        run_status = do_test(top, "hello/hello.bin", 0200, 07777, main_time, 220000000);
         if (run_status == WAS_HALTED) 
             printf("test failed\n");
         else if (run_status == WAS_RUNNING)
