@@ -173,7 +173,7 @@ int main(int argc, char** argv, char** env) {
 
     top->final();
 
-    end = clock();
+    t_end = clock();
     double elapsed = (double) (t_end - t_start) / CLOCKS_PER_SEC;
     double speed = (double) main_time / elapsed;
 
