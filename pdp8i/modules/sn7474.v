@@ -7,8 +7,8 @@ module sn7474 (
 	input d,
 	input pre_n,
 	input clr_n,
-	output q,
-	output q_n
+	output reg q,
+	output reg q_n
 	);
 
 reg old_clk;
