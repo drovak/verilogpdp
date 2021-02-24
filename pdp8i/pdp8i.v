@@ -622,7 +622,7 @@ m113 d15(.A1(ac00_low), .B1(ac01),
 	.C1(n_t_579x), .D1(ac01_low), .D2(n3v_lp_29_rp_low), .E1(ac00), 
 	.E2(n_t_577x), .F1(n_t_580x), .F2(mq_low_ac0), .H1(eae_ir0_low), 
 	.H2(n3v_lp_29_rp_low), .J1(eae_ir1), .J2(eae_complete_low), .K1(muy_dvi_low), 
-	.K2(n_t_590x), .L1(n_t_590x), .L2(n_t_581x), .M1(eae_run_low), 
+	.K2(n_t_590x), .L1(n_t_590x), .L2(n_t_581x), .M1(eae_run), 
 	.M2(n3v_lp_29_rp_low), .N1(n_t_609x), .N2(mb_to_sc_enable), .P1(n3v_lp_29_rp_low), 
 	.P2(mq11_low), .R1(ac_to_mq_enable_low), .R2(muy), .S1(ac_to_mq_enable), 
 	.S2(n_t_584x), .T2(n_t_592x), .U2(n3v_lp_29_rp_low), .V2(asr_enable));

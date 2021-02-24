@@ -4,7 +4,8 @@ Equipment Corporation PDP series of computers
 
 Changelog:  
 20210224 KVO: Removed power pins from M310. Changed default M452 baudrate to
-significantly higher value to speed up simulation.
+significantly higher value to speed up simulation. Fixed `EAE_RUN` signal in
+main netlist so that EAE now starts correctly.
 20210222 KVO: Added TTY output support. Passes MAINDEC-8I-D01C and
 MAINDEC-8I-D02B! Also prints "hello world" after running both MAINDECs
 for a bit. Cleaned up test suite. Extended power-on reset pulse. Refactored
