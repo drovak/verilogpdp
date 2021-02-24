@@ -19,10 +19,10 @@ int init_sr = 0200;
 unsigned long long int runtime = 0;
 unsigned long long int logtime = 0;
 
-clock_t start, end;
+clock_t t_start, t_end;
 
 int main(int argc, char** argv, char** env) {
-    start = clock();
+    t_start = clock();
     if (false && argc && argv && env) {}
 
     Verilated::debug(0);
@@ -174,7 +174,7 @@ int main(int argc, char** argv, char** env) {
     top->final();
 
     end = clock();
-    double elapsed = (double) (end - start) / CLOCKS_PER_SEC;
+    double elapsed = (double) (t_end - t_start) / CLOCKS_PER_SEC;
     double speed = (double) main_time / elapsed;
 
     VL_PRINTF("\nexiting at time %" VL_PRI64 "d ns\n", main_time);
