@@ -3,8 +3,8 @@
 // Used for 8x and 2x baud rate generation
 
 module m452 #(
-	parameter BAUD=1562500) (
-	clk, // 100 MHz
+	parameter BAUD=312500) (
+	clk, // 20 MHz
 	//A2,  // +5V
 	B2,
 	//C2,  // ground
@@ -43,7 +43,7 @@ input T2, B2, D2, E2, F2, S2, U2, V2;
 //assign C2 = 1'b0;
 
 // what do we need to count to in order to generate 16x the baud rate?
-localparam max_count = $rtoi($floor((100e6 / (16 * BAUD)) + 0.5) - 1);
+localparam max_count = $rtoi($floor((20e6 / (16 * BAUD)) + 0.5) - 1);
 
 // baud rate counter
 reg [$clog2(max_count)-1:0] count;
@@ -61,7 +61,7 @@ assign L2 = div[2];
 reg prev;
 
 // delay element for pulse duration
-reg [3:0] pulse_delay;
+reg [0:0] pulse_delay;
 
 // output a pulse while the delay counter is greater than zero
 assign R2 = (pulse_delay > 0) ? 1'b1 : 1'b0;
@@ -75,7 +75,7 @@ always @(posedge clk) begin
 
 	// count only if greater than zero; reset after 100 ns
 	if (pulse_delay > 0) begin
-		if (pulse_delay < 9) pulse_delay <= pulse_delay + 1;
+		if (pulse_delay < 1) pulse_delay <= pulse_delay + 1;
 		else pulse_delay <= 0;
 	end
 

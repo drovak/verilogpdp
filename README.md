@@ -9,7 +9,8 @@ main netlist so that EAE now starts correctly. SN7474 now captures data from
 previous clock edge to fix edge case of data/clock changing simultaneously.
 Added command line parser to `sim_main.cpp` along with timing information. 
 Now can start logging at a specific time to reduce log file size and increase
-simulation speed.
+simulation speed. Changed design clock speed from 100 MHz to 20 MHz to further
+increase simulation speed (not well tested yet).
 20210222 KVO: Added TTY output support. Passes MAINDEC-8I-D01C and
 MAINDEC-8I-D02B! Also prints "hello world" after running both MAINDECs
 for a bit. Cleaned up test suite. Extended power-on reset pulse. Refactored

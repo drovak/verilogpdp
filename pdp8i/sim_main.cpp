@@ -16,8 +16,8 @@ int did_hlt_msg = 0;
 const char *bin_name = NULL;
 int start_addr = 0200;
 int init_sr = 0200;
-unsigned long long int runtime = -1;
-unsigned long long int logtime = -1;
+unsigned long long int runtime = 0;
+unsigned long long int logtime = 0;
 
 clock_t start, end;
 
@@ -75,15 +75,12 @@ int main(int argc, char** argv, char** env) {
         printf("error: invalid switch register setting\n");
         exit(-1);
     }
-    if (runtime < 0)
+    if (runtime == 0)
         printf("testing %s with SA=%o and SR=%o\n", bin_name, start_addr, init_sr);
     else
         printf("testing %s with SA=%o and SR=%o for %llu ns\n", bin_name, start_addr, init_sr, runtime);
 #if VM_TRACE
-    if (logtime > 0)
-        printf("logging enabled at %llu ns\n", logtime);
-    else
-        printf("logging enabled at 0 ns\n");
+    printf("logging enabled at %llu ns\n", logtime);
 #else
     printf("logging disabled\n");
 #endif
@@ -158,10 +155,10 @@ int main(int argc, char** argv, char** env) {
 
 		for (int clk = 0; clk < 2; clk++)
 		{
-			main_time += 5;
+			main_time += 25;
 #if VM_TRACE
 			if (tfp && (main_time > logtime))
-				tfp->dump(10*i + 5*clk);
+				tfp->dump(50*i + 25*clk);
 #endif
 			top->clk = !top->clk;
 			top->eval();

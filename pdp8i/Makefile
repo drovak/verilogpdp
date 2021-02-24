@@ -50,7 +50,7 @@ VERILATOR_INPUT = -f input.vc top.v -y modules sim_main.cpp control.cpp
 
 # Test arguments for model
 #TEST_ARGS = -b maindec/maindec-8i-d02b-pb.bin -s 0201 -r 07777 -t 220000000
-TEST_ARGS = -b maindec/maindec-8i-d0aa-pb.bin -s 0200 -r 05000 -t 35500000000 -l 2000000000
+TEST_ARGS = -b maindec/maindec-8i-d0aa-pb.bin -s 0200 -r 05000 -t 35500000000 -l 27900000000 
 
 ######################################################################
 default: run

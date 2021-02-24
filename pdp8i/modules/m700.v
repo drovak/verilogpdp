@@ -2,7 +2,7 @@
 // Kyle Owen - 15 February 2021
 
 module m700 (
-	clk, // 100 MHz
+	clk, // 20 MHz
 	//AA2,  // +5V
 	AB2,
 	//AC2,  // ground
@@ -62,12 +62,12 @@ input AB2, AD2, AU2, AV2, BB2, BE2, BF2, BH2, BJ2,
 //assign BC2 = 1'b0;
 
 // main time counter
-reg [8:0] timer;
+reg [6:0] timer;
 
 wire mftp0, mftp1, mftp2;
-assign mftp0 = ((timer > 0) && (timer < 10)) ? 1'b1 : 1'b0;
-assign mftp1 = ((timer > 9'd200) && (timer < 9'd210)) ? 1'b1 : 1'b0;
-assign mftp2 = ((timer > 9'd400) && (timer < 9'd410)) ? 1'b1 : 1'b0;
+assign mftp0 = ((timer > 0) && (timer < 2)) ? 1'b1 : 1'b0;
+assign mftp1 = ((timer > 7'd40) && (timer < 7'd42)) ? 1'b1 : 1'b0;
+assign mftp2 = ((timer > 7'd80) && (timer < 7'd82)) ? 1'b1 : 1'b0;
 assign AT2 = mftp0;
 assign AE2 = mftp1;
 assign BD2 = mftp2;
@@ -103,7 +103,7 @@ always @(posedge clk) begin
 	if (mfts0 && !old_mfts0 && (timer == 0)) timer <= 1;
 
 	if (timer > 0) begin
-		if (timer < 9'd420) timer <= timer + 1;
+		if (timer < 7'd84) timer <= timer + 1;
 		else timer <= 0;
 	end
 end
