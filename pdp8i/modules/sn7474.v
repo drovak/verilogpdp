@@ -12,9 +12,11 @@ module sn7474 (
 	);
 
 reg old_clk;
+reg old_d;
 
 always @(posedge mclk) begin
 	old_clk <= clk;
+    old_d <= d;
 
 	if (!pre_n && !clr_n) begin
 		q <= 1'b1;
@@ -26,8 +28,8 @@ always @(posedge mclk) begin
 		q <= 1'b0;
 		q_n <= 1'b1;
 	end else if (clk && !old_clk) begin
-		q <= d;
-		q_n <= !d;
+		q <= old_d;
+		q_n <= !old_d;
 	end
 end
 /*
