@@ -3,30 +3,30 @@
 
 module m310 (
 	clk, // 100 MHz
-	A1,
-	B1,
-	C1,
-	D1,
+	//A1,
+	//B1,
+	//C1,
+	//D1,
 	E1,
 	F1,
 	H1,
 	J1,
-	K1,
-	L1,
-	M1,
-	N1,
-	P1,
-	R1,
-	S1,
-	T1,  // ground
-	U1,
-	V1,
-	A2,  // +5V
-	B2,
-	C2,  // ground
-	D2,
-	E2,
-	F2,
+	//K1,
+	//L1,
+	//M1,
+	//N1,
+	//P1,
+	//R1,
+	//S1,
+	//T1,  // ground
+	//U1,
+	//V1,
+	//A2,  // +5V
+	//B2,
+	//C2,  // ground
+	//D2,
+	//E2,
+	//F2,
 	H2,
 	J2,
 	K2,
@@ -41,7 +41,7 @@ module m310 (
 	V2
 	);
 // power and grounds
-inout A2, C2, T1; 
+//inout A2, C2, T1; 
 
 // main inputs
 input clk, H2, E1, H1;
@@ -51,14 +51,14 @@ output J2, K2, L2, M2, N2, V2, P2, R2, S2, T2, U2, F1, J1;
 
 // unused
 /* verilator lint_off UNUSED */
-input A1, B1, C1, D1, K1, L1, M1, N1, P1, R1, S1,
-	U1, V1, B2, D2, E2, F2;
+//input A1, B1, C1, D1, K1, L1, M1, N1, P1, R1, S1,
+//	U1, V1, B2, D2, E2, F2;
 /* lint_on */
 
 // power assignments
-assign A2 = 1'b1;
-assign C2 = 1'b0;
-assign T1 = 1'b0;
+//assign A2 = 1'b1;
+//assign C2 = 1'b0;
+//assign T1 = 1'b0;
 
 // main delay line
 reg [50:0] delay;
