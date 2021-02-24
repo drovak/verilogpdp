@@ -48,6 +48,10 @@ VERILATOR_FLAGS += -Wall
 # Input files for Verilator
 VERILATOR_INPUT = -f input.vc top.v -y modules sim_main.cpp control.cpp
 
+# Test arguments for model
+#TEST_ARGS = -b maindec/maindec-8i-d02b-pb.bin -s 0201 -r 07777 -t 220000000
+TEST_ARGS = -b maindec/maindec-8i-d0aa-pb.bin -s 0200 -r 05000 -t 35500000000 -l 2000000000
+
 ######################################################################
 default: run
 
@@ -58,18 +62,13 @@ run:
 
 	@echo
 	@echo "-- BUILD -------------------"
-# To compile, we can either
-# 1. Pass --build to Verilator by editing VERILATOR_FLAGS above.
-# 2. Or, run the make rules Verilator does:
-#	$(MAKE) -j -C obj_dir -f Vtop.mk
-# 3. Or, call a submakefile where we can override the rules ourselves:
 	$(MAKE) -j -C obj_dir -f ../Makefile_obj
 
 	@echo
 	@echo "-- RUN ---------------------"
 	@rm -rf logs
 	@mkdir -p logs
-	obj_dir/Vtop +trace
+	obj_dir/Vtop +trace $(TEST_ARGS)
 
 	@echo
 	@echo "-- DONE --------------------"
@@ -88,12 +87,31 @@ notrace:
 
 	@echo
 	@echo "-- RUN ---------------------"
-	obj_dir/Vtop
+	obj_dir/Vtop $(TEST_ARGS)
 
 	@echo
 	@echo "-- DONE --------------------"
 	@echo
 
+######################################################################
+test:
+	@echo
+	@echo "-- VERILATE ----------------"
+	$(VERILATOR) $(VERILATOR_FLAGS) $(VERILATOR_INPUT)
+
+	@echo
+	@echo "-- BUILD -------------------"
+	$(MAKE) -j -C obj_dir -f ../Makefile_obj
+
+	@echo
+	@echo "-- RUN ---------------------"
+	obj_dir/Vtop -b maindec/maindec-8i-d01c-pb.bin -s 0147 -r 07777 -t 3400000
+	obj_dir/Vtop -b maindec/maindec-8i-d02b-pb.bin -s 0201 -r 07777 -t 220000000
+	obj_dir/Vtop -b maindec/maindec-8i-d0aa-pb.bin -s 0200 -r 05000 -t 35500000000 -l 2150000000
+
+	@echo
+	@echo "-- DONE --------------------"
+	@echo
 ######################################################################
 # Other targets
 

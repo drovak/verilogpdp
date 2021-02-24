@@ -1,6 +1,9 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <memory>
 #include <verilated.h>
+#include <unistd.h>
+#include <time.h>
 #include "verilated_vcd_c.h"
 #include "Vtop.h"
 #include "control.h"
@@ -10,7 +13,16 @@ vluint64_t main_time = 0;
 int did_print = 0;
 int did_hlt_msg = 0;
 
+const char *bin_name = NULL;
+int start_addr = 0200;
+int init_sr = 0200;
+unsigned long long int runtime = -1;
+unsigned long long int logtime = -1;
+
+clock_t start, end;
+
 int main(int argc, char** argv, char** env) {
+    start = clock();
     if (false && argc && argv && env) {}
 
     Verilated::debug(0);
@@ -27,6 +39,53 @@ int main(int argc, char** argv, char** env) {
 		top->trace(tfp, 99);
 		tfp->open("logs/trace.vcd");
 	}
+#endif
+
+    int opt;
+    while ((opt = getopt(argc, argv, "b:s:r:t:l:")) != -1) {
+        switch (opt) {
+        case 'b': // bin file to load
+            bin_name = optarg;
+            break;
+        case 's': // starting address
+            sscanf(optarg, "%o", &start_addr);
+            break;
+        case 'r': // initial switch register
+            sscanf(optarg, "%o", &init_sr);
+            break;
+        case 't': // max runtime
+            sscanf(optarg, "%llu", &runtime);
+            break;
+        case 'l': // time to start logging
+            sscanf(optarg, "%llu", &logtime);
+            break;
+        default: break;
+        }
+    }
+
+    if (bin_name == NULL) {
+        printf("error: no bin file specified\n");
+        exit(-1);
+    }
+    if (start_addr < 0 || start_addr > 07777) {
+        printf("error: invalid starting address\n");
+        exit(-1);
+    }
+    if (init_sr < 0 || init_sr > 07777) {
+        printf("error: invalid switch register setting\n");
+        exit(-1);
+    }
+    if (runtime < 0)
+        printf("testing %s with SA=%o and SR=%o\n", bin_name, start_addr, init_sr);
+    else
+        printf("testing %s with SA=%o and SR=%o for %llu ns\n", bin_name, start_addr, init_sr, runtime);
+#if VM_TRACE
+    if (logtime > 0)
+        printf("logging enabled at %llu ns\n", logtime);
+    else
+        printf("logging enabled at 0 ns\n");
+#else
+    printf("logging disabled\n");
 #endif
 
     top->clk = 0;
@@ -52,12 +111,8 @@ int main(int argc, char** argv, char** env) {
 	
 	VL_PRINTF("starting simulation...\n");
     uint64_t i = 0;
-#if VM_TRACE
-    while (main_time < 236000000)
-#else
-	for (;;)
-#endif
-	{
+
+    while ((runtime < 0) || (main_time < runtime)) {
 		// disable reset after a bit
 		if (main_time > 5000)
 			top->rst = 0;
@@ -77,37 +132,15 @@ int main(int argc, char** argv, char** env) {
 
         int run_status;
 
-        //run_status = do_test(top, "maindec/maindec-8i-d0aa-pb.bin", 0200, 05000, main_time, 15000);
-        run_status = do_test(top, "maindec/maindec-8i-d01c-pb.bin", 0144, 07777, main_time, 15000);
-        if (main_time == 41000) {
-            if (!top->run && top->pc == 0147 && !top->lac) {
-                printf("LAC clear, continuing...\n");
-                top->cont = 1;
-            } else {
-                printf("test failed\n");
-            }
-        }
-
-        run_status = do_test(top, "maindec/maindec-8i-d02b-pb.bin", 0201, 07777, main_time, 3400000);
-        if (run_status == WAS_HALTED) 
-            printf("test failed\n");
-        else if (run_status == WAS_RUNNING)
-            printf("test passed\n");
-
-        run_status = do_test(top, "hello/hello.bin", 0200, 07777, main_time, 220000000);
-        if (run_status == WAS_HALTED) 
-            printf("test failed\n");
-        else if (run_status == WAS_RUNNING)
-            printf("test passed\n");
+        run_status = do_test(top, bin_name, start_addr, init_sr, main_time, 15000);
 
         // print status when halted
         if (main_time > 36000 && !top->run && !did_hlt_msg) {
             did_hlt_msg = 1;
-            VL_PRINTF("\nhalted at time %" VL_PRI64 "d\n", main_time);
+            VL_PRINTF("\nhalted at time %" VL_PRI64 "d ns\n", main_time);
             printf("pc: %o lac: %o ma: %o mb: %o mq: %o sc: %o if: %o df: %o\n\n", 
                 top->pc, top->lac, top->ma, top->mb, top->mq, top->sc, top->instf, top->dataf);
-            if (main_time > 220045000)
-                break;
+            break;
         } else if (top->run) {
             did_hlt_msg = 0;
         }
@@ -127,7 +160,7 @@ int main(int argc, char** argv, char** env) {
 		{
 			main_time += 5;
 #if VM_TRACE
-			if (tfp)
+			if (tfp && (main_time > logtime))
 				tfp->dump(10*i + 5*clk);
 #endif
 			top->clk = !top->clk;
@@ -136,14 +169,27 @@ int main(int argc, char** argv, char** env) {
         i++;
     }
 
-    VL_PRINTF("\nexiting at time %" VL_PRI64 "d\n", main_time);
-
 #if VM_TRACE
 	if (tfp)
 		tfp->close();
 #endif
 
     top->final();
+
+    end = clock();
+    double elapsed = (double) (end - start) / CLOCKS_PER_SEC;
+    double speed = (double) main_time / elapsed;
+
+    VL_PRINTF("\nexiting at time %" VL_PRI64 "d ns\n", main_time);
+    VL_PRINTF("elapsed time: %.1f seconds ", elapsed);
+    if (speed >= 1e9)
+        VL_PRINTF("(%.1f seconds per second)\n", speed / 1e9);
+    else if (speed >= 1e6)
+        VL_PRINTF("(%.1f milliseconds per second)\n", speed / 1e6);
+    else if (speed >= 1e3)
+        VL_PRINTF("(%.1f microseconds per second)\n", speed / 1e3);
+    else
+        VL_PRINTF("(%.1f nanoseconds per second)\n", speed);
 
     exit(0);
 }
