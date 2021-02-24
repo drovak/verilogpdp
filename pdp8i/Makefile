@@ -36,6 +36,8 @@ VERILATOR_FLAGS += -cc --exe
 #VERILATOR_FLAGS += -MMD
 # Optimize
 VERILATOR_FLAGS += -Os -x-assign 0 --unroll-count 90000
+# Multithreading doesn't really seem to improve the speed...
+#VERILATOR_FLAGS += --threads 4 
 # Warn abount lint issues; may not want this on less solid designs
 VERILATOR_FLAGS += -Wall
 # Make waveforms
@@ -50,7 +52,10 @@ VERILATOR_INPUT = -f input.vc top.v -y modules sim_main.cpp control.cpp
 
 # Test arguments for model
 #TEST_ARGS = -b maindec/maindec-8i-d02b-pb.bin -s 0201 -r 07777 -t 220000000
-TEST_ARGS = -b maindec/maindec-8i-d0aa-pb.bin -s 0200 -r 05000 -t 35500000000 -l 27900000000 
+TEST_ARGS = -b maindec/maindec-8i-d0aa-pb.bin -s 0200 -r 05000 -t 35500000000 -l 28328000000 
+
+#EXE = numactl -m 0 -C 0,1,2,3 -- objdir/Vtop
+EXE = objdir/Vtop
 
 ######################################################################
 default: run
@@ -68,7 +73,7 @@ run:
 	@echo "-- RUN ---------------------"
 	@rm -rf logs
 	@mkdir -p logs
-	obj_dir/Vtop +trace $(TEST_ARGS)
+	$(EXE) +trace $(TEST_ARGS)
 
 	@echo
 	@echo "-- DONE --------------------"
@@ -87,7 +92,7 @@ notrace:
 
 	@echo
 	@echo "-- RUN ---------------------"
-	obj_dir/Vtop $(TEST_ARGS)
+	$(EXE) $(TEST_ARGS)
 
 	@echo
 	@echo "-- DONE --------------------"
@@ -105,9 +110,9 @@ test:
 
 	@echo
 	@echo "-- RUN ---------------------"
-	obj_dir/Vtop -b maindec/maindec-8i-d01c-pb.bin -s 0147 -r 07777 -t 3400000
-	obj_dir/Vtop -b maindec/maindec-8i-d02b-pb.bin -s 0201 -r 07777 -t 220000000
-	obj_dir/Vtop -b maindec/maindec-8i-d0aa-pb.bin -s 0200 -r 05000 -t 35500000000 -l 2150000000
+	$(EXE) -b maindec/maindec-8i-d01c-pb.bin -s 0147 -r 07777 -t 3400000
+	$(EXE) -b maindec/maindec-8i-d02b-pb.bin -s 0201 -r 07777 -t 220000000
+	$(EXE) -b maindec/maindec-8i-d0aa-pb.bin -s 0200 -r 05000 -t 35500000000 -l 2150000000
 
 	@echo
 	@echo "-- DONE --------------------"
