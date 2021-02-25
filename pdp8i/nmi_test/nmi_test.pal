@@ -1,0 +1,8 @@
+NMI=7411
+        *200
+        CLA CMA
+        MQL
+        CLA CMA
+        NMI
+        HLT
+		$
