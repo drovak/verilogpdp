@@ -665,7 +665,7 @@ m117 d20(.A1(mq_low_ac0), .B1(mid_ac0),
 	.C1(ac03_low), .D1(ac02_low), .D2(eae_right_shift_enable_low), .E1(n_t_578x), 
 	.E2(b_eae_on), .F1(eae_ir0_low), .F2(n_t_582x), .H1(n_t_586x), 
 	.H2(div_last_low), .J1(b_eae_on), .J2(eae_left_shift_enable_low), .K1(n_t_584x), 
-	.K2(mq01), .L1(eae_mem_enable_low), .L2(sc1), .M1(b_fetch), 
+	.K2(mq11), .L1(eae_mem_enable_low), .L2(sc1), .M1(b_fetch), 
 	.M2(div_last), .N1(opr), .N2(dvi), .P1(mb03), 
 	.P2(n_t_586x), .R1(mb11), .R2(eae_ir0), .S1(n_t_683x), 
 	.S2(eae_ir1_low), .T2(eae_ir2_low), .U2(eae_inst), .V2(nmi_low));
