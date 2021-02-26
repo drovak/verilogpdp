@@ -1,0 +1,46 @@
+8I-D01C instruction test 1
+8I-D02B instruction test 2
+8I-D0AA PDP-8/I instruction test - part 3A (SA 0200 SR 5000, 35 seconds)
+8I-D0BA extended arithmetic PDP-8/I instruction test - part 3B
+    If interrupt interaction is to be tested, load any tape in tape reader
+    and turn it on. Load address 0200, press start, program halts at loc 0200.
+    Set any desired options in SR and press continue. The program will halt at
+    program end halt (loc 0256) after last routine has been executed, provided
+    no loop options have been set.
+    SR0: Halt after current routine. Program halts at completion of current
+         test routine. The AC displays number of completed routine.
+    SR1: Select routine. The program jumps to routine whose number is set in
+         SR9 through SR11. Routine selection occurs at start of program, or at
+         completion of current routine.
+    SR2: Loop routine. Current routine is repeated.
+    SR3: Loop program. Entire program is repeated.
+    SR4: Lock on test. The test currently being executed is repeated.
+    SR5=0 Print on error.
+    SR5=1 Halt on error.
+    SR6: Halt after print. Program halts after error printout.
+    SR7: Print failure rate. The program prints the number of failures per
+         hundred repetitions of same test. Program halts after the printout.
+         SR5 must be set to 0 for the printout to occur.
+    SR8: Print simulation and/or enter 'scope loop. For routines 0 and 1
+         program prints multiply simulation and enters multiply 'scope loop.
+         For routines 2 and 3 program prints divide simulation and enters
+         divide 'scope loop. For routines 4 through 7 program enters the 
+         exerciser 'scope loop for individual routine. SR5 must be set to 0
+         for this option to become active.
+    SR9 through SR11: Routine number. These switches specify the number of
+         routine to be selected. SR1 must be on to select a routine.
+8I-D5DB DF32 discless logic test, minidisc
+8I-D5FB DF32D discless logic test, minidisc
+8I-D8AE KW8I real time clock
+
+08-D02B PDP-8 instruction test - part 2A
+08-D04B random JMP test
+08-D05B random JMP/JMS test
+08-D07B random ISZ test
+08-D1L0 basic PDP-8, 8/I memory checkerboard
+08-D1L1 basic PDP-8, 8/I basic memory checkerboard (low)
+08-D1L2 basic PDP-8, 8/I memory checkerboard (high)
+08-D1MA memory address test (RIM)
+08-D2PE family of 8 ASR 33/35 teletype tests part 1
+08-D2QD family of 8 ASR 33/35 teletype tests part 2
+08-D1AC PDP-8 memory power on/off test
