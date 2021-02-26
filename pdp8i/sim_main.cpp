@@ -144,6 +144,7 @@ int main(int argc, char** argv, char** env) {
 
         // has a character been sent?
 		if (!top->top__DOT__pdp__DOT__ef02__DOT__load && !did_print) {
+            //VL_PRINTF("[%" VL_PRI64 "d]", main_time);
 			did_print = 1;
             if ((top->lac & 0177) == 07) 
                 printf("\033[31;1m[ding!]\033[0m"); // bell
@@ -155,10 +156,10 @@ int main(int argc, char** argv, char** env) {
 
 		for (int clk = 0; clk < 2; clk++)
 		{
-			main_time += 25;
+			main_time += 5;
 #if VM_TRACE
 			if (tfp && (main_time > logtime))
-				tfp->dump(50*i + 25*clk);
+				tfp->dump(10*i + 5*clk);
 #endif
 			top->clk = !top->clk;
 			top->eval();

@@ -3,6 +3,11 @@ Synthesizable Verilog implementations from original schematics of Digital
 Equipment Corporation PDP series of computers
 
 ## Changelog:  
+- 20210226 KVO: Design speed is back to 100 MHz to lengthen minimum pulses and
+to make glitch detection easier for the SN7474 model. SN7474 captures data from
+two master clock cycles previous, and requires two consecutive asserted signals
+on the asynchronous clear and preset inputs to activate. Appears to pass 
+MAINDECs 8I-D01C, 8I-D02B, 8I-D0AA, 8I-D0BA, 08-D04B, 08-D05B, and 08-D07B.
 - 20210224 KVO: Removed power pins from M310. Changed default M452 baudrate to
 significantly higher value to speed up simulation. Fixed `EAE_RUN` signal in
 main netlist so that EAE now starts correctly. SN7474 now captures data from
