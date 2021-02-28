@@ -1,0 +1,101 @@
+-- RUN ---------------------
+obj_dir/Vtop -b maindec/maindec-8i-d01c-pb.bin -s 0144 -r 07777 -t 50000         # should halt after 0146
+testing maindec/maindec-8i-d01c-pb.bin with SA=144 and SR=7777 for 50000 ns
+logging disabled
+starting simulation...
+loading maindec/maindec-8i-d01c-pb.bin...done
+running...
+
+halted at time 40030 ns
+pc: 147 lac: 0 ma: 146 mb: 7402 mq: 0 sc: 0 if: 0 df: 0
+
+
+exiting at time 40030 ns
+elapsed time: 0.0 seconds (13.5 milliseconds per second)
+obj_dir/Vtop -b maindec/maindec-8i-d01c-pb.bin -s 0147 -r 07777 -t 438546670     # should print [ding!]
+testing maindec/maindec-8i-d01c-pb.bin with SA=147 and SR=7777 for 438546670 ns
+logging disabled
+starting simulation...
+loading maindec/maindec-8i-d01c-pb.bin...done
+running...
+[ding!]
+exiting at time 438546670 ns
+elapsed time: 27.1 seconds (16.2 milliseconds per second)
+obj_dir/Vtop -b maindec/maindec-08-d02b-pb.bin -s 0200 -r 05400 -t 2499800000    # should print ADD OK, ROT, and 2B
+testing maindec/maindec-08-d02b-pb.bin with SA=200 and SR=5400 for 2499800000 ns
+logging disabled
+starting simulation...
+loading maindec/maindec-08-d02b-pb.bin...done
+running...
+
+ADD OK
+ROT
+2B
+
+exiting at time 2499800000 ns
+elapsed time: 164.8 seconds (15.2 milliseconds per second)
+obj_dir/Vtop -b maindec/maindec-8i-d02b-pb.bin -s 0201 -r 07777 -t 160394380     # should print [ding!]
+testing maindec/maindec-8i-d02b-pb.bin with SA=201 and SR=7777 for 160394380 ns
+logging disabled
+starting simulation...
+loading maindec/maindec-8i-d02b-pb.bin...done
+running...
+[ding!]
+exiting at time 160394380 ns
+elapsed time: 10.7 seconds (15.0 milliseconds per second)
+obj_dir/Vtop -b maindec/maindec-08-d04b-pb.bin -s 0200 -r 04000 -t 8834748830    # should print 04
+testing maindec/maindec-08-d04b-pb.bin with SA=200 and SR=4000 for 8834748830 ns
+logging disabled
+starting simulation...
+loading maindec/maindec-08-d04b-pb.bin...done
+running...
+
+04
+exiting at time 8834748830 ns
+elapsed time: 584.8 seconds (15.1 milliseconds per second)
+obj_dir/Vtop -b maindec/maindec-08-d05b-pt.bin -s 0200 -r 04000 -t 11684778700   # should print 05
+testing maindec/maindec-08-d05b-pt.bin with SA=200 and SR=4000 for 11684778700 ns
+logging disabled
+starting simulation...
+loading maindec/maindec-08-d05b-pt.bin...done
+running...
+
+05
+exiting at time 11684778700 ns
+elapsed time: 773.0 seconds (15.1 milliseconds per second)
+obj_dir/Vtop -b maindec/maindec-08-d07b-pb.bin -s 0037 -r 04000 -t 2832802670    # should print 07
+testing maindec/maindec-08-d07b-pb.bin with SA=37 and SR=4000 for 2832802670 ns
+logging disabled
+starting simulation...
+loading maindec/maindec-08-d07b-pb.bin...done
+running...
+07
+
+
+exiting at time 2832802670 ns
+elapsed time: 186.9 seconds (15.2 milliseconds per second)
+obj_dir/Vtop -b maindec/maindec-8i-d0aa-pb.bin -s 0200 -r 05000 -t 29533500000   # should print 3A
+testing maindec/maindec-8i-d0aa-pb.bin with SA=200 and SR=5000 for 29533500000 ns
+logging disabled
+starting simulation...
+loading maindec/maindec-8i-d0aa-pb.bin...done
+running...
+
+3A
+exiting at time 29533500000 ns
+elapsed time: 1951.2 seconds (15.1 milliseconds per second)
+obj_dir/Vtop -b maindec/maindec-8i-d0ba-pb.bin -s 0201 -r 00040 -t 441903000000  # should halt after 0256
+testing maindec/maindec-8i-d0ba-pb.bin with SA=201 and SR=40 for 441903000000 ns
+logging disabled
+starting simulation...
+loading maindec/maindec-8i-d0ba-pb.bin...done
+running...
+
+halted at time 441902143070 ns
+pc: 257 lac: 405 ma: 256 mb: 7402 mq: 4262 sc: 15 if: 0 df: 0
+
+
+exiting at time 441902143070 ns
+elapsed time: 29120.4 seconds (15.2 milliseconds per second)
+
+-- DONE --------------------

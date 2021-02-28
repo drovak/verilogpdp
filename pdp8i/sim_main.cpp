@@ -109,6 +109,8 @@ int main(int argc, char** argv, char** env) {
 	VL_PRINTF("starting simulation...\n");
     uint64_t i = 0;
 
+    int set_halt = 0;
+
     while ((runtime < 0) || (main_time < runtime)) {
 		// disable reset after a bit
 		if (main_time > 5000)
@@ -144,6 +146,13 @@ int main(int argc, char** argv, char** env) {
 
         // has a character been sent?
 		if (!top->top__DOT__pdp__DOT__ef02__DOT__load && !did_print) {
+#if 0
+            if (!set_halt && (top->lac & 0177) >= 7 && (top->lac & 0177) < 0177) {
+                VL_PRINTF("[%" VL_PRI64 "d] %o\n", main_time, top->lac & 0177);
+                runtime = main_time + 10000000;
+                set_halt = 1;
+            }
+#endif
             //VL_PRINTF("[%" VL_PRI64 "d]", main_time);
 			did_print = 1;
             if ((top->lac & 0177) == 07) 
