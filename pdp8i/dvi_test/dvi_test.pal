@@ -1,0 +1,8 @@
+DVI=7407
+    *200
+    CLA CLL
+    MQL
+    DVI
+    0
+    HLT
+    $
