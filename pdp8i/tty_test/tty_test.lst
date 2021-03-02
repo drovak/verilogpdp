@@ -1,0 +1,31 @@
+
+
+
+              *200                                                        Page 1
+
+
+    1        0200          *200
+    2 00200  7240          CLA CMA
+    3 00201  3220          DCA CHAR
+    4 00202  1220  LOOP,   TAD CHAR
+    5 00203  7001          IAC
+    6 00204  0377          AND (377
+    7 00205  3220          DCA CHAR
+    8 00206  1220          TAD CHAR
+    9 00207  6046          TLS
+   10                      /TSF
+   11                      /JMP .-1
+   12 00210  6031          KSF
+   13 00211  5210          JMP .-1
+   14 00212  6036          KRB
+   15 00213  7041          CMA IAC
+   16 00214  1220          TAD CHAR
+   17 00215  7450          SNA
+   18 00216  5202          JMP LOOP
+   19 00217  7402          HLT
+   20 00220  0000  CHAR,   .-.
+      00377  0377
+   21                      $
+
+      No detected errors
+      No links generated

@@ -1,0 +1,21 @@
+        *200
+        CLA CMA
+        DCA CHAR
+LOOP,   TAD CHAR
+        IAC
+        AND (377
+        DCA CHAR
+        TAD CHAR
+        TLS
+        /TSF
+        /JMP .-1
+        KSF
+        JMP .-1
+        KRB
+        CMA IAC
+        TAD CHAR
+        SNA
+        JMP LOOP
+        HLT
+CHAR,   .-.
+        $

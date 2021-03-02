@@ -3,6 +3,8 @@ Synthesizable Verilog implementations from original schematics of Digital
 Equipment Corporation PDP series of computers
 
 ## Changelog:  
+- 20210302 KVO: Added TTY input support. Currently configured as loopback for
+test purposes. Slowed baud rate clock to 230.4k.
 - 20210227 KVO: Passing CPU and EAE MAINDECs; see results in `successful_run.txt`.
 Cleaned up Makefile a bit.
 - 20210226 KVO: Design speed is back to 100 MHz to lengthen minimum pulses and

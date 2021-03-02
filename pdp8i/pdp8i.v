@@ -890,8 +890,7 @@ m216 e33(.clk(clk), .A1(n3v_lp_42_rp_low), .B1(tp4),
 	.P1(mb11_low), .R1(n0_to_int_enab_low), .R2(int_delay), .S1(int_enable_low), 
 	.S2(ac_load), .T2(n_t_128x), .U1(int_enable), .U2(n3v_lp_42_rp_low), 
 	.V1(link_low), .V2(link));
-/*
-m706 ef01(.AD2(mb03_low), .AE1(mb04_low), 
+m706 ef01(.clk(clk), .AP1(1'b1), .AD2(mb03_low), .AE1(mb04_low), 
 	.AE2(kcc_low), .AF1(mb05_low), .AF2(keyboard_flag_low), .AH1(mb06_low), 
 	.AH2(mb07), .AJ1(mb08), .AJ2(tti2), .AK1(tti2), 
 	.AK2(tt0_low), .AL1(tt3_low), .AL2(iop4), .AM1(tt4_low), 
@@ -900,9 +899,8 @@ m706 ef01(.AD2(mb03_low), .AE1(mb04_low),
 	.AU2(reader_run_low), .AV2(kcc_low), .BD1(1'b0), .BD2(iop1), 
 	.BE2(tt_ac_clr_low), .BF2(initialize), .BH2(tti_skip_low), .BJ2(iop2), 
 	.BM2(rx_data), .BR1(n3v_lp_33_rp_low), .BR2(in_stop_2_low), .BT2(clock_scale_2), 
-	.BU1(clock_scale_2), .BV2(in_stop_2_low));
-*/
-m707 ef02(.clk(clk), .AE1(mb04_low), .AE2(mb03_low), 
+	.BP2(clock_scale_2), .BU1(clock_scale_2), .BV2(in_stop_2_low));
+m707 ef02(.clk(clk), .AB1(1'b1), .AE1(mb04_low), .AE2(mb03_low), 
 	.AF1(mb06), .AF2(mb05_low), .AH1(enable_low), .AH2(mb07_low), 
 	.AJ2(mb08_low), .AK1(enable), .AK2(enable), .AL1(enable_low), 
 	.AL2(ac06), .AM2(ac07), .AN1(n3v_lp_33_rp_low), .AN2(n3v_lp_33_rp_low), 
@@ -1827,7 +1825,7 @@ wire key_st;
 wire key_st_low;
 wire key_stexdp;
 wire key_stop_low;
-wire keyboard_flag_low = 1'b1;
+wire keyboard_flag_low;
 wire l_enable;
 wire lbar_enable;
 wire left_shift;
@@ -2554,7 +2552,7 @@ wire right_shift;
 wire rmf_low;
 wire run;
 wire run_low;
-wire rx_data;
+wire rx_data = tx_data;
 wire s = 1'b1;
 wire s_low = 1'b1;
 wire s_set_low;
@@ -2622,15 +2620,15 @@ wire ts3;
 wire ts3_low;
 wire ts4;
 wire ts4_low;
-wire tt0_low = 1'b1;
-wire tt1_low = 1'b1;
-wire tt2_low = 1'b1;
-wire tt3_low = 1'b1;
-wire tt4_low = 1'b1;
-wire tt5_low = 1'b1;
-wire tt6_low = 1'b1;
-wire tt7_low = 1'b1;
-wire tt_ac_clr_low = 1'b1;
+wire tt0_low;
+wire tt1_low;
+wire tt2_low;
+wire tt3_low;
+wire tt4_low;
+wire tt5_low;
+wire tt6_low;
+wire tt7_low;
+wire tt_ac_clr_low;
 wire tt_ac_load_low = 1'b1;
 wire tt_carry_insert = 1'b0;
 wire tt_carry_insert_c_low;
@@ -2655,7 +2653,7 @@ wire tt_skip_low;
 wire tti2;
 wire tti_clock;
 wire tti_data;
-wire tti_skip_low = 1'b1;
+wire tti_skip_low;
 wire tto_clock_low;
 wire tto_skip_low;
 wire tx_data;

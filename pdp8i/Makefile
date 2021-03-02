@@ -51,13 +51,14 @@ VERILATOR_FLAGS += -Wall
 VERILATOR_INPUT = -f input.vc top.v -y modules sim_main.cpp control.cpp
 
 # Test arguments for model
-TEST_ARGS = -b maindec/maindec-8i-d01c-pb.bin -s 0147 -r 07777 -t 3400000
+#TEST_ARGS = -b maindec/maindec-8i-d01c-pb.bin -s 0147 -r 07777 -t 3400000
 #TEST_ARGS = -b maindec/maindec-8i-d02b-pb.bin -s 0201 -r 07777 -t 150395000
 #TEST_ARGS = -b maindec/maindec-08-d04b-pb.bin -s 0200 -r 04000 -t 15000000000
 #TEST_ARGS = -b maindec/maindec-8i-d0aa-pb.bin -s 0200 -r 05000 -t 29533500000
 #TEST_ARGS = -b maindec/maindec-8i-d0ba-pb.bin -s 0201 -r 00040 -t 2000000000 -l 1130000000
 #TEST_ARGS = -b nmi_test/nmi_test.bin -s 0200 -t 100000
 #TEST_ARGS = -b dvi_test/dvi_test.bin -s 0200 -t 200000
+TEST_ARGS = -b tty_test/tty_test.bin -s 0200 -t 25000000
 
 #EXE = numactl -m 0 -C 0,1 -- obj_dir/Vtop
 EXE = obj_dir/Vtop
