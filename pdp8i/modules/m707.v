@@ -111,11 +111,13 @@ assign AD2 = line;
 assign AD1 = active;
 assign AK2 = enable_q;
 
-reg old_active, line_clr_n;
+reg old_active;
+reg [1:0] line_clr_n_cnt;
+wire line_clr_n = (line_clr_n_cnt > 0) ? 1'b0 : 1'b1;
 always @(posedge clk) begin
 	old_active <= active;
-	if (active && !old_active) line_clr_n <= 1'b0;
-	else line_clr_n <= 1'b1;
+	if (active && !old_active) line_clr_n_cnt <= 'b1;
+	if (line_clr_n_cnt > 0) line_clr_n_cnt <= line_clr_n_cnt + 1;
 end
 
 generate
