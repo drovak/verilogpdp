@@ -4,22 +4,43 @@
 #include <verilated.h>
 #include <unistd.h>
 #include <time.h>
+#include <termio.h>
+#include <ctype.h>
+#include <signal.h>
 #include "verilated_vcd_c.h"
 #include "Vtop.h"
 #include "control.h"
 
-vluint64_t main_time = 0;
+// prints time and octal value of character received for debugging
+//#define VERBOSE_PRINT
 
-int did_print = 0;
+vluint64_t main_time = 0;
+vluint64_t cycle_count = 0;
+
 int did_hlt_msg = 0;
+int do_tx = 0;
+int old_run = 0;
+int old_tp4 = 0;
+int started = 0;
 
 const char *bin_name = NULL;
 int start_addr = 0200;
 int init_sr = 0200;
 unsigned long long int runtime = 0;
 unsigned long long int logtime = 0;
+unsigned long long int max_cycles = 0;
 
 clock_t t_start, t_end;
+
+int ignore_stdin = 0;
+char buf;
+
+void status(Vtop *top) {
+    VL_PRINTF("[time: %" VL_PRI64 "d ns  ", main_time);
+    VL_PRINTF("cycle count: %" VL_PRI64 "d  ", cycle_count);
+    printf("pc: %04o lac: %05o ma: %04o mb: %04o mq: %04o sc: %02o if: %o df: %o]\n", 
+        top->pc, top->lac, top->ma, top->mb, top->mq, top->sc, top->instf, top->dataf);
+}
 
 int main(int argc, char** argv, char** env) {
     t_start = clock();
@@ -41,8 +62,26 @@ int main(int argc, char** argv, char** env) {
 	}
 #endif
 
+    struct termios old_term, new_term;
+    if (tcgetattr(STDIN_FILENO, &old_term) < 0) {
+        perror("tcgetattr");
+        exit(1);
+    }
+
+    // raw and no echo
+    new_term = old_term;
+    new_term.c_lflag &= ~ICANON;
+    new_term.c_lflag &= ~ECHO;
+    new_term.c_cc[VMIN] = 0;
+    new_term.c_cc[VTIME] = 0;
+
+    if (tcsetattr(STDIN_FILENO, TCSANOW, &new_term) < 0) {
+        perror("tcsetattr");
+        exit(1);
+    }
+
     int opt;
-    while ((opt = getopt(argc, argv, "b:s:r:t:l:")) != -1) {
+    while ((opt = getopt(argc, argv, "b:s:r:t:l:ic:")) != -1) {
         switch (opt) {
         case 'b': // bin file to load
             bin_name = optarg;
@@ -58,6 +97,12 @@ int main(int argc, char** argv, char** env) {
             break;
         case 'l': // time to start logging
             sscanf(optarg, "%llu", &logtime);
+            break;
+        case 'i': // ignore stdin
+            ignore_stdin = 1;
+            break;
+        case 'c': // max cycles
+            sscanf(optarg, "%llu", &max_cycles);
             break;
         default: break;
         }
@@ -99,6 +144,8 @@ int main(int argc, char** argv, char** env) {
 	top->sing_step = 0;
 	top->sr = 0; 
 	top->step = 0;
+    top->data_to_pdp = 0;
+	top->data_to_pdp_strobe = 0;
 
 	top->eval();
 
@@ -111,7 +158,15 @@ int main(int argc, char** argv, char** env) {
 
     int set_halt = 0;
 
-    while ((runtime < 0) || (main_time < runtime)) {
+    for (;;) {
+        // are we running for a fixed time?
+        if ((runtime > 0) && (main_time >= runtime))
+            break;
+
+        // are we running for a fixed number of cycles?
+        if (started && (max_cycles > 0) && (cycle_count >= max_cycles))
+            break;
+
 		// disable reset after a bit
 		if (main_time > 5000)
 			top->rst = 0;
@@ -125,6 +180,7 @@ int main(int argc, char** argv, char** env) {
 		top->dep = 0;
 		top->exam = 0;
         if (top->run) {
+            started = 1;
             top->start = 0;
             top->cont = 0;
         }
@@ -132,6 +188,54 @@ int main(int argc, char** argv, char** env) {
         int run_status;
 
         run_status = do_test(top, bin_name, start_addr, init_sr, main_time, 15000);
+
+        // send character if UART is ready and we aren't ignoring stdin
+        if (top->data_to_pdp_ready && !do_tx) {
+            if (read(STDIN_FILENO, &buf, 1) > 0) {
+                if (buf == 5) // ctrl-e
+                    status(top);
+                else if (!ignore_stdin) {
+                    if (buf == 012) buf = 015; // translate CR/LF
+                    top->data_to_pdp = toupper(buf) | 0200; // mark parity
+                    do_tx = 1;
+                }
+            }
+        }
+
+        if (do_tx) {
+            do_tx = 0;
+            top->data_to_pdp_strobe = 1;
+        } else {
+            top->data_to_pdp_strobe = 0;
+        }
+
+        // any characters to print from the PDP-8?
+        if (top->data_from_pdp_strobe) {
+#ifdef VERBOSE_PRINT
+            VL_PRINTF("[cycle count: %" VL_PRI64 "d] %03o", cycle_count, top->data_from_pdp);
+            if ((top->data_from_pdp & 0177) >= 040 && (top->data_from_pdp & 0177) < 0177)
+                printf(" (%c)\n", top->data_from_pdp & 0177);
+            else if ((top->data_from_pdp & 0177) == 07)
+                printf(" (BEL)\n");
+            else if ((top->data_from_pdp & 0177) == 011)
+                printf(" (TAB)\n");
+            else if ((top->data_from_pdp & 0177) == 012)
+                printf(" (LF)\n");
+            else if ((top->data_from_pdp & 0177) == 014)
+                printf(" (FF)\n");
+            else if ((top->data_from_pdp & 0177) == 015)
+                printf(" (CR)\n");
+            else if ((top->data_from_pdp & 0177) == 033)
+                printf(" (ESC)\n");
+            else
+                printf("\n");
+#else
+            printf("%c", top->data_from_pdp & 0177);
+            if ((top->data_from_pdp & 0177) == 07) 
+                printf("\033[31;1m[ding!]\033[0m"); // bell
+			fflush(stdout);
+#endif
+        }
 
         // print status when halted
         if (main_time > 36000 && !top->run && !did_hlt_msg) {
@@ -144,24 +248,17 @@ int main(int argc, char** argv, char** env) {
             did_hlt_msg = 0;
         }
 
-        // has a character been sent?
-		if (!top->top__DOT__pdp__DOT__ef02__DOT__load && !did_print) {
-#if 0
-            if (!set_halt && (top->lac & 0177) >= 7 && (top->lac & 0177) < 0177) {
-                VL_PRINTF("[%" VL_PRI64 "d] %o\n", main_time, top->lac & 0177);
-                runtime = main_time + 10000000;
-                set_halt = 1;
-            }
-#endif
-            //VL_PRINTF("[%" VL_PRI64 "d]", main_time);
-			did_print = 1;
-            if ((top->lac & 0177) == 07) 
-                printf("\033[31;1m[ding!]\033[0m"); // bell
-            printf("%c", top->lac & 0177); // print it
-			fflush(stdout);
-		} else if (top->top__DOT__pdp__DOT__ef02__DOT__load) {
-			did_print = 0;
-		}
+        // reset cycle count on start
+        if (!old_run && top->run) {
+            cycle_count = 0;
+        }
+        old_run = top->run;
+
+        // increment cycle count at every TP4
+        if (!old_tp4 && top->top__DOT__pdp__DOT__tp4) {
+            cycle_count++;
+        }
+        old_tp4 = top->top__DOT__pdp__DOT__tp4;
 
 		for (int clk = 0; clk < 2; clk++)
 		{
@@ -188,6 +285,7 @@ int main(int argc, char** argv, char** env) {
     double speed = (double) main_time / elapsed;
 
     VL_PRINTF("\nexiting at time %" VL_PRI64 "d ns\n", main_time);
+    VL_PRINTF("cycle count: %" VL_PRI64 "d\n", cycle_count);
     VL_PRINTF("elapsed time: %.1f seconds ", elapsed);
     if (speed >= 1e9)
         VL_PRINTF("(%.1f seconds per second)\n", speed / 1e9);

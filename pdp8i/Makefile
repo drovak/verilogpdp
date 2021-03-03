@@ -48,17 +48,20 @@ VERILATOR_FLAGS += -Wall
 #VERILATOR_FLAGS += --gdbbt
 
 # Input files for Verilator
-VERILATOR_INPUT = -f input.vc top.v -y modules sim_main.cpp control.cpp
+VERILATOR_INPUT = -f input.vc top.v uart.v -y modules sim_main.cpp control.cpp
 
 # Test arguments for model
-#TEST_ARGS = -b maindec/maindec-8i-d01c-pb.bin -s 0147 -r 07777 -t 3400000
-#TEST_ARGS = -b maindec/maindec-8i-d02b-pb.bin -s 0201 -r 07777 -t 150395000
-#TEST_ARGS = -b maindec/maindec-08-d04b-pb.bin -s 0200 -r 04000 -t 15000000000
-#TEST_ARGS = -b maindec/maindec-8i-d0aa-pb.bin -s 0200 -r 05000 -t 29533500000
-#TEST_ARGS = -b maindec/maindec-8i-d0ba-pb.bin -s 0201 -r 00040 -t 2000000000 -l 1130000000
-#TEST_ARGS = -b nmi_test/nmi_test.bin -s 0200 -t 100000
-#TEST_ARGS = -b dvi_test/dvi_test.bin -s 0200 -t 200000
-TEST_ARGS = -b tty_test/tty_test.bin -s 0200 -t 25000000
+#TEST_ARGS = -b maindec/maindec-8i-d01c-pb.bin -i -s 0147 -r 07777 -t 3400000
+#TEST_ARGS = -b maindec/maindec-8i-d02b-pb.bin -i -s 0201 -r 07777 -t 150395000
+#TEST_ARGS = -b maindec/maindec-08-d04b-pb.bin -i -s 0200 -r 04000 -t 15000000000
+#TEST_ARGS = -b maindec/maindec-8i-d0aa-pb.bin -i -s 0200 -r 05000 -t 40033500000
+#TEST_ARGS = -b maindec/maindec-8i-d0ba-pb.bin -i -s 0201 -r 00040 -t 2000000000 -l 1130000000
+TEST_ARGS = -b maindec/maindec-08-d1ec-pb.bin -s 0200 -r 00000
+#TEST_ARGS = -b nmi_test/nmi_test.bin -i -s 0200 -t 100000
+#TEST_ARGS = -b dvi_test/dvi_test.bin -i -s 0200 -t 200000
+#TEST_ARGS = -b tty_test/tty_test.bin -s 0200 -t 25000000
+#TEST_ARGS = -b tty_test/tty_test2.bin -s 0200
+#TEST_ARGS = -b focal69/focal69.bin -s 0200
 
 #EXE = numactl -m 0 -C 0,1 -- obj_dir/Vtop
 EXE = obj_dir/Vtop
@@ -116,16 +119,32 @@ test:
 
 	@echo
 	@echo "-- RUN ---------------------"
-	$(EXE) -b maindec/maindec-8i-d01c-pb.bin -s 0144 -r 07777 -t 50000         # should halt after 0146
-	$(EXE) -b maindec/maindec-8i-d01c-pb.bin -s 0147 -r 07777 -t 438546670     # should print [ding!]
-	$(EXE) -b maindec/maindec-08-d02b-pb.bin -s 0200 -r 05400 -t 2499800000    # should print ADD OK, ROT, and 2B
-	$(EXE) -b maindec/maindec-8i-d02b-pb.bin -s 0201 -r 07777 -t 160394380     # should print [ding!]
-	$(EXE) -b maindec/maindec-08-d04b-pb.bin -s 0200 -r 04000 -t 8834748830    # should print 04
-	$(EXE) -b maindec/maindec-08-d05b-pt.bin -s 0200 -r 04000 -t 11684778700   # should print 05
-	$(EXE) -b maindec/maindec-08-d07b-pb.bin -s 0037 -r 04000 -t 2832802670    # should print 07
-	$(EXE) -b maindec/maindec-8i-d0aa-pb.bin -s 0200 -r 05000 -t 29533500000   # should print 3A
-	$(EXE) -b maindec/maindec-8i-d0ba-pb.bin -s 0201 -r 00040 -t 441903000000  # should halt after 0256
+	$(EXE) -b maindec/maindec-8i-d01c-pb.bin -i -s 0144 -r 07777 -t 50000         # should halt after 0146
+	$(EXE) -b maindec/maindec-8i-d01c-pb.bin -i -s 0147 -r 07777 -c 283800 -t 438546670     # should print [ding!]
+	$(EXE) -b maindec/maindec-08-d02b-pb.bin -i -s 0200 -r 05400 -c 1655000 -t 2499800000    # should print ADD OK, ROT, and 2B
+	$(EXE) -b maindec/maindec-8i-d02b-pb.bin -i -s 0201 -r 07777 -c 98500 -t 160394380     # should print [ding!]
+	$(EXE) -b maindec/maindec-08-d04b-pb.bin -i -s 0200 -r 04000 -c 5681400 -t 8834748830    # should print 04
+	$(EXE) -b maindec/maindec-08-d05b-pt.bin -i -s 0200 -r 04000 -c 7568850 -t 11684778700   # should print 05
+	$(EXE) -b maindec/maindec-08-d07b-pb.bin -i -s 0037 -r 04000 -c 1875900 -t 2832802670    # should print 07
+	$(EXE) -b maindec/maindec-8i-d0aa-pb.bin -i -s 0200 -r 05000 -t 30033500000   # should print 3A
+	$(EXE) -b maindec/maindec-8i-d0ba-pb.bin -i -s 0201 -r 00040 -t 441903000000  # should halt after 0256
 
+	@echo
+	@echo "-- DONE --------------------"
+	@echo
+######################################################################
+focal:
+	@echo
+	@echo "-- VERILATE ----------------"
+	$(VERILATOR) $(VERILATOR_FLAGS) $(VERILATOR_INPUT)
+
+	@echo
+	@echo "-- BUILD -------------------"
+	$(MAKE) -j -C obj_dir -f ../Makefile_obj
+
+	@echo
+	@echo "-- RUN ---------------------"
+	$(EXE) -b focal69/focal69.bin -s 0200
 
 	@echo
 	@echo "-- DONE --------------------"
