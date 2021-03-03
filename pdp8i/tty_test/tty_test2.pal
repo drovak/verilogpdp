@@ -1,0 +1,12 @@
+        *200
+        CLA
+        TLS
+LOOP,   CLA
+        KSF
+        JMP .-1
+        KRB
+        TSF
+        JMP .-1
+        TLS
+        JMP LOOP
+        $
