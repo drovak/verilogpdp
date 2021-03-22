@@ -2,7 +2,10 @@
 Synthesizable Verilog implementations from original schematics of Digital
 Equipment Corporation PDP series of computers
 
+Currently features a PDP-8/I implementation. Very much a work-in-progress. 
+
 ## Changelog:  
+- 20210322 KVO: Added TC08/TU55 support. Now boots OS/8!!
 - 20210302 KVO: Added TTY input support. Currently configured as loopback for
 test purposes. Slowed baud rate clock to 230.4k. Added "ctrl-e" to print status
 of PDP-8 while running. Now runs FOCAL-69! Added support for counting machine cycles 
@@ -27,22 +30,18 @@ MAINDEC-8I-D02B! Also prints "hello world" after running both MAINDECs
 for a bit. Cleaned up test suite. Extended power-on reset pulse. Refactored
 test control code.
 
-Currently features an incomplete PDP-8/I implementation. Very much a
-work-in-progress. 
-
 ## Requirements:
-Verilator to simulate the model, and GTKWave to view the results.
+Verilator to simulate the model, and optionally GTKWave to view the results.
 
 ## Usage:
-Just type `make` within the `pdp8i` directory to build and run the model. Then,
-open the results under `logs` with GTKWave. You may also type `make notrace` to
-prevent logging, which slows down the model tremendously and can generate,
-given enough time, some quite large files. It takes about 5 minutes to run the
-second MAINDEC until the bell sounds, indicating 40 successful program loops.
-The resulting log file was 2 GB. I recommend running with `notrace` if you don't
-need to log every single signal, and if you do need to log every signal, I'd
-recommend running for less time. The `Makefile` controls which tests are run,
-so you may wish to pick which one to run beforehand.
+To boot OS/8 with the TC08/TU55, just type `make`. After several minutes, a dot
+prompt will appear. It's interactive, but be forewarned: the simulation is typically
+around 1/1000 of original speed. To print the directory listing takes about an hour
+on my computer.
+
+Other targets are available as well; read the `Makefile` to see what you can run.
+When running with logging, a log file will appear under `logs`. Logging can increase
+runtime and generate very large files, so beware!
 
 ## Acknowledgements:
 A big *thank you* to Vince Slyngstad, for his high-quality redrawn schematics,
