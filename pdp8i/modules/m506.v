@@ -41,6 +41,13 @@ module m506 (
 	output V2
 	);
 
+//pullup(A1);
+//pullup(F1);
+//pullup(M1);
+//pullup(D2);
+//pullup(K2);
+//pullup(R2);
+
 assign E1 = !(!A1 & B1 & C1 & D1);
 assign L1 = !(!F1 & H1 & J1 & K1);
 assign S1 = !(!M1 & N1 & P1 & R1);
