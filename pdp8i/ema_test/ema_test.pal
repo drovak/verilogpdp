@@ -1,0 +1,161 @@
+        *20
+TBL,    1111
+        2222
+        3333
+        4444
+        5555
+        6666
+        7777
+
+        *200
+        CDF 0
+        TAD TBL
+        CDF 10
+        DCA I [0
+        
+        CDF 0
+        TAD TBL+1
+        CDF 20
+        DCA I [0
+        
+        CDF 0
+        TAD TBL+2
+        CDF 30
+        DCA I [0
+        
+        CDF 0
+        TAD TBL+3
+        CDF 40
+        DCA I [0
+        
+        CDF 0
+        TAD TBL+4
+        CDF 50
+        DCA I [0
+        
+        CDF 0
+        TAD TBL+5
+        CDF 60
+        DCA I [0
+        
+        CDF 0
+        TAD TBL+6
+        CDF 70
+        DCA I [0
+
+        CDF 10
+        TAD I [0
+        CMA IAC
+        CDF 0
+        TAD TBL
+        SZA
+        HLT
+
+        CDF 20
+        TAD I [0
+        CMA IAC
+        CDF 0
+        TAD TBL+1
+        SZA
+        HLT
+
+        CDF 30
+        TAD I [0
+        CMA IAC
+        CDF 0
+        TAD TBL+2
+        SZA
+        HLT
+
+        CDF 40
+        TAD I [0
+        CMA IAC
+        CDF 0
+        TAD TBL+3
+        SZA
+        HLT
+
+        CDF 50
+        TAD I [0
+        CMA IAC
+        CDF 0
+        TAD TBL+4
+        SZA
+        HLT
+
+        CDF 60
+        TAD I [0
+        CMA IAC
+        CDF 0
+        TAD TBL+5
+        SZA
+        HLT
+
+        CDF 70
+        TAD I [0
+        CMA IAC
+        CDF 0
+        TAD TBL+6
+        SZA
+        HLT
+
+        CDF CIF 10
+        JMP FLD1
+
+        JMP .
+FLD0,   CDF 10
+        CLA
+        RDF
+        HLT
+        JMP .
+        
+        FIELD 1
+        *322
+        HLT
+FLD1,   CDF CIF 20
+        JMP FLD2
+        HLT
+
+        FIELD 2
+        *326
+        HLT
+FLD2,   CDF CIF 30
+        JMP FLD3
+        HLT
+
+        FIELD 3
+        *332
+        HLT
+FLD3,   CDF CIF 40
+        JMP FLD4
+        HLT
+
+        FIELD 4
+        *336
+        HLT
+FLD4,   CDF CIF 50
+        JMP FLD5
+        HLT
+
+        FIELD 5
+        *342
+        HLT
+FLD5,   CDF CIF 60
+        JMP FLD6
+        HLT
+
+        FIELD 6
+        *346
+        HLT
+FLD6,   CDF CIF 70
+        JMP FLD7
+        HLT
+
+        FIELD 7
+        *352
+        HLT
+FLD7,   CDF CIF 0
+        JMP FLD0
+        HLT
+
+		$
