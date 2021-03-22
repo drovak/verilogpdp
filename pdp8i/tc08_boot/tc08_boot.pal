@@ -1,0 +1,21 @@
+    *200
+    7600
+    TAD 216
+    JMS 210
+    TAD 217
+    DCA I 220
+    TAD 222
+    JMS 210
+    JMP I 200
+    0
+    DTLA
+    DCA I 221
+    DTSF
+    JMP .-1
+    JMP I 210
+    0600
+    7577
+    7755
+    7754
+    0220
+    $

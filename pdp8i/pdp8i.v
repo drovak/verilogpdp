@@ -42,9 +42,125 @@ module pdp8i (
     output wire [12:0] lac,
     output wire [4:0] sc,
     output wire [11:0] mq,
+    output tp3_test,
+    output [11:0] dt_wc,
+    output [11:0] dt_ca,
+    output [14:0] mem_addr,
     input rx_data,
-    output tx_data
+    output tx_data,
+
+    // Posibus
+    output pb_o_iop1,
+    output pb_o_iop2,
+    output pb_o_iop4,
+    output pb_o_ts3, 
+    output pb_o_ts1,
+    output pb_o_pwr_clr,
+    output pb_o_addr_acc_l,
+    output pb_o_wc_overflow_l,
+    output pb_o_brk_l,
+    output pb_o_run_l,
+    output [11:0] pb_o_bac,
+    output [11:0] pb_o_bmb,
+    output [8:3] pb_o_bmb_l,
+
+    input pb_i_3_cycle_l,
+    input pb_i_mb_inc_l,
+    input pb_i_0_to_ac_l,
+    input pb_i_1_to_ca_inh_l,
+    input pb_i_brk_rq_l,
+    input pb_i_data_in,
+    input pb_i_int_rq_l,
+    input pb_i_skp_rq_l,
+    input [11:0] pb_i_da_l,
+    input [11:0] pb_i_db_l,
+    input [2:0] pb_i_ea_l,
+    input [11:0] pb_i_im_l
 );
+
+// Negibus to Posibus converter
+dw08b dw (
+    // input
+    .nb_add_accept_l(badd_accepted_low),
+    .nb_bac_h(nb_bac_h),
+    .nb_bmb_h(nb_bmb_h),
+    .nb_bmb_l(nb_bmb_l),
+    .nb_break_l(bbreak),
+    .nb_init_l(binitialize_low),
+    .nb_iop1_l(biop1_low),
+    .nb_iop2_l(biop2_low),
+    .nb_iop4_l(biop4_low),
+    .nb_run_l(brun_low),
+    .nb_ts1_l(bts1),
+    .nb_ts3_l(bts3),
+    //.nb_tt_inst_h(),
+    .nb_wc_overflow_l(bwc_overflow),
+
+    .pb_3_cycle_l(pb_i_3_cycle_l),
+    .pb_ac_clr_cont_l(pb_i_0_to_ac_l),
+    .pb_ac_l(pb_i_im_l),
+    .pb_brk_rq_l(pb_i_brk_rq_l),
+    .pb_ca_inc_h(pb_i_1_to_ca_inh_l),
+    .pb_d_l(pb_i_db_l),
+    .pb_da_l(pb_i_da_l),
+    .pb_data_in_l(pb_i_data_in),
+    .pb_ea_l(pb_i_ea_l),
+    .pb_int_rq_l(pb_i_int_rq_l),
+    //.pb_line_mux_l(),
+    .pb_mb_inc_l(pb_i_mb_inc_l),
+    .pb_skip_l(pb_i_skp_rq_l),
+
+    // output
+    .nb_3_cycle_h(n3cycle),
+    .nb_ac_clr_cont_h(acclr),
+    .nb_ac_h(nb_ac_h),
+    .nb_brk_rq_h(brq),
+    .nb_ca_inc_l(ca_incr_low),
+    .nb_d_h(nb_d_h),
+    .nb_da_h(nb_da_h),
+    .nb_data_in_h(d_in_low),
+    .nb_ea_l(nb_ea_l),
+    .nb_int_rq_h(irq),
+    //.nb_line_mux_h(),
+    .nb_mb_inc_h(mem_incr),
+    .nb_skip_h(skipb),
+
+    .pb_add_accept_l(pb_o_addr_acc_l),
+    .pb_bac_h(pb_o_bac),
+    .pb_bmb_h(pb_o_bmb),
+    .pb_bmb_l(pb_o_bmb_l),
+    .pb_break_l(pb_o_brk_l),
+    .pb_init_h(pb_o_pwr_clr),
+    .pb_iop1_h(pb_o_iop1),
+    .pb_iop2_h(pb_o_iop2),
+    .pb_iop4_h(pb_o_iop4),
+    .pb_run_l(pb_o_run_l),
+    .pb_ts1_h(pb_o_ts1),
+    .pb_ts3_h(pb_o_ts3),
+    //.pb_tt_inst_h(),
+    .pb_wc_overflow_l(pb_o_wc_overflow_l)
+);
+
+wire [11:0] nb_bac_h = {bac00, bac01, bac02, bac03, bac04, bac05, 
+                        bac06, bac07, bac08, bac09, bac10, bac11};
+wire [11:0] nb_bmb_h = {bmb00, bmb01, bmb02, bmb03, bmb04, bmb05,
+                        bmb06, bmb07, bmb08, bmb09, bmb10, bmb11};
+wire [8:3] nb_bmb_l = {bmb03_low, bmb04_low, bmb05_low, bmb06_low, bmb07_low, bmb08_low};
+
+wire [11:0] nb_ac_h;
+assign {in00, in01, in02, in03, in04, in05,
+        in06, in07, in08, in09, in10, in11} = nb_ac_h;
+wire [11:0] nb_da_h;
+assign {da00, da01, da02, da03, da04, da05,
+        da06, da07, da08, da09, da10, da11} = nb_da_h;
+wire [11:0] nb_d_h;
+assign {d00, d01, d02, d03, d04, d05,
+        d06, d07, d08, d09, d10, d11} = nb_d_h;
+wire [2:0] nb_ea_l;
+assign {eda0, eda1, eda2} = nb_ea_l;
+
+assign tp3_test = tp3;
+assign mem_addr = {ea0, ea1, ea2, ma};
 
 assign power_clear_low = !rst;
 
@@ -127,7 +243,7 @@ assign state_break = !break_low;
 
 mem core_mem(.clk(clk), .mem_start(b_mem_start), .mem_done_n(mem_done_low),
              .strobe_n(strobe_low), .addr({ea0, ea1, ea2, ma}), 
-             .data_in(mb), .data_out(mem));
+             .data_in(mb), .data_out(mem), .dt_ca(dt_ca), .dt_wc(dt_wc));
 
 wire [11:0] reg_bus;
 
@@ -886,7 +1002,7 @@ m617 e32(
     .U2(eae_acbar_enable_low), .V2(acbar_enable));
 m216 e33(.clk(clk), .A1(n3v_lp_42_rp_low), .B1(tp4), 
     .C1(break_ok_low), .D1(n_t_116x), .D2(tp2), .E1(add_accepted_low), 
-    .E2(n_t_119x), .F2(n3v_lp_42_rp_low), .H1(int_strobe), .H2(wc_overflow_low), 
+    .E2(n_t_119x), .F2(mem_done_low), .H1(int_strobe), .H2(wc_overflow_low), 
     .J1(n_t_23x), .K1(manual_preset_low), .K2(n3v_lp_42_rp_low), .L2(n_t_122x), 
     .M1(int_sync), .M2(int_enable_low), .N1(n_t_123x), .N2(int_enable), 
     .P1(mb11_low), .R1(n0_to_int_enab_low), .R2(int_delay), .S1(int_enable_low), 
@@ -1231,7 +1347,8 @@ m650 h19(
     .S2(bwc_overflow), .T2(n3v_lp_55_rp_low), .U2(wc_overflow_low), .V2(n3v_lp_55_rp_low));
 m650 h20(
     .D2(bbreak), .F2(n3v_lp_55_rp_low), .H2(break_low), .J2(n3v_lp_55_rp_low), 
-    .K2(badd_accepted_low), .M2(n3v_lp_55_rp_low), .N2(add_accepted_low), .P2(ts1_low));
+    .K2(badd_accepted_low), .M2(n3v_lp_55_rp_low), .N2(add_accepted_low), .P2(n3v_lp_55_rp_low));
+    //.K2(badd_accepted_low), .M2(n3v_lp_55_rp_low), .N2(add_accepted_low), .P2(ts1_low));
 /*
 m708 h30(
     .A1(mb11), .C1(io_bus_in_int_low), .D2(clock), .F2(iop4_low), 
@@ -1434,7 +1551,7 @@ wire ac_load;
 wire ac_to_mq_enable;
 wire ac_to_mq_enable_low;
 wire acbar_enable;
-wire acclr = 1'b0;
+wire acclr;
 wire add_accepted_low;
 wire add_low;
 wire adder00;
@@ -1535,7 +1652,7 @@ wire break_ok;
 wire break_ok_low;
 wire brk_rqst;
 wire brk_sync;
-wire brq = 1'b0;
+wire brq;
 wire brun_low;
 wire bstlr;
 wire btp2;
@@ -1548,7 +1665,7 @@ wire c;
 wire c_low;
 wire c_no_shift_low;
 wire c_set_low;
-wire ca_incr_low = 1'b1;
+wire ca_incr_low;
 wire ca_increment;
 wire ca_increment_low;
 wire carry_insert_low;
@@ -1568,33 +1685,33 @@ wire cuf;
 wire cuf_low;
 wire current_address;
 wire current_address_low;
-wire d00 = 1'b0;
-wire d01 = 1'b0;
-wire d02 = 1'b0;
-wire d03 = 1'b0;
-wire d04 = 1'b0;
-wire d05 = 1'b0;
-wire d06 = 1'b0;
-wire d07 = 1'b0;
-wire d08 = 1'b0;
-wire d09 = 1'b0;
-wire d10 = 1'b0;
-wire d11 = 1'b0;
-wire d_in_low = 1'b1;
+wire d00;
+wire d01;
+wire d02;
+wire d03;
+wire d04;
+wire d05;
+wire d06;
+wire d07;
+wire d08;
+wire d09;
+wire d10;
+wire d11;
+wire d_in_low;
 wire d_set;
 wire d_set_low;
-wire da00 = 1'b0;
-wire da01 = 1'b0;
-wire da02 = 1'b0;
-wire da03 = 1'b0;
-wire da04 = 1'b0;
-wire da05 = 1'b0;
-wire da06 = 1'b0;
-wire da07 = 1'b0;
-wire da08 = 1'b0;
-wire da09 = 1'b0;
-wire da10 = 1'b0;
-wire da11 = 1'b0;
+wire da00;
+wire da01;
+wire da02;
+wire da03;
+wire da04;
+wire da05;
+wire da06;
+wire da07;
+wire da08;
+wire da09;
+wire da10;
+wire da11;
 wire data00;
 wire data01;
 wire data02;
@@ -1683,9 +1800,9 @@ wire eae_start_low;
 wire eae_tg;
 wire eae_tp;
 wire eae_tp_low;
-wire eda0 = 1'b0;
-wire eda1 = 1'b0;
-wire eda2 = 1'b0;
+wire eda0;
+wire eda1;
+wire eda2;
 wire enable;
 wire enable_low;
 wire execute_low;
@@ -1729,18 +1846,18 @@ wire if_to_sf;
 wire ifsr0;
 wire ifsr1;
 wire ifsr2;
-wire in00 = 1'b0;
-wire in01 = 1'b0;
-wire in02 = 1'b0;
-wire in03 = 1'b0;
-wire in04 = 1'b0;
-wire in05 = 1'b0;
-wire in06 = 1'b0;
-wire in07 = 1'b0;
-wire in08 = 1'b0;
-wire in09 = 1'b0;
-wire in10 = 1'b0;
-wire in11 = 1'b0;
+wire in00;
+wire in01;
+wire in02;
+wire in03;
+wire in04;
+wire in05;
+wire in06;
+wire in07;
+wire in08;
+wire in09;
+wire in10;
+wire in11;
 wire in_stop_2_low;
 wire initialize;
 wire initialize_low;
@@ -1799,7 +1916,7 @@ wire ir1;
 wire ir1_low;
 wire ir2;
 wire ir2_low;
-wire irq = 1'b0;
+wire irq;
 wire isz;
 wire isz_low;
 wire jmp;
@@ -1902,13 +2019,13 @@ wire mcbmb08_low;
 wire mcbmb09_low;
 wire mcbmb10_low;
 wire mcbmb11_low;
-wire me05_low = 1'b1;
-wire me06_low = 1'b1;
-wire me07_low = 1'b1;
-wire me08_low = 1'b1;
-wire me09_low = 1'b1;
-wire me10_low = 1'b1;
-wire me11_low = 1'b1;
+wire me05_low;
+wire me06_low;
+wire me07_low;
+wire me08_low;
+wire me09_low;
+wire me10_low;
+wire me11_low;
 wire mem00;
 wire mem01;
 wire mem02;
@@ -1931,7 +2048,7 @@ wire mem_ext_ac_load_enable_low;
 wire mem_ext_io_enable_low;
 wire mem_ext_low;
 wire mem_idle;
-wire mem_incr = 1'b0;
+wire mem_incr;
 wire mem_inh9_11_low = 1'b1;
 wire mem_p = 1'b1;
 wire mem_parity_even_low;
@@ -1982,7 +2099,7 @@ wire muy_low;
 wire n0_to_int_enab_low;
 wire n36v;
 wire n3_cycle;
-wire n3cycle = 1'b1;
+wire n3cycle;
 wire n3v_lp_01_rp_low = 1'b1;
 wire n3v_lp_02_rp_low = 1'b1;
 wire n3v_lp_03_rp_low = 1'b1;
@@ -2587,7 +2704,7 @@ wire shut_down_low;
 wire sint;
 wire skip_low;
 wire skip_or;
-wire skipb = 1'b0;
+wire skipb;
 wire slow_cycle;
 wire slow_cycle_low;
 wire special_cycle_low;
@@ -2673,321 +2790,3 @@ wire word_count_low;
 
 /* lint_on */
 endmodule
-
-// inout ac00_low;
-// inout ac01_low;
-// inout ac02_low;
-// inout ac03_low;
-// inout ac04_low;
-// inout ac05_low;
-// inout ac06_low;
-// inout ac07_low;
-// inout ac08_low;
-// inout ac09_low;
-// inout ac10_low;
-// inout ac11_low;
-// inout and_low;
-// inout b_r0_low;
-// inout break_low;
-// inout current_address_low;
-// inout dca_low;
-// inout execute_low;
-// inout fetch_low;
-// inout int_enable_low;
-// inout iot_low;
-// inout isz_low;
-// inout jmp_low;
-// inout jms_low;
-// inout lhs_low;
-// inout link_low;
-// inout ma00_low;
-// inout ma01_low;
-// inout ma02_low;
-// inout ma03_low;
-// inout ma04_low;
-// inout ma05_low;
-// inout ma06_low;
-// inout ma07_low;
-// inout ma08_low;
-// inout ma09_low;
-// inout ma10_low;
-// inout ma11_low;
-// inout mb00_low;
-// inout mb01_low;
-// inout mb02_low;
-// inout mb03_low;
-// inout mb04_low;
-// inout mb05_low;
-// inout mb06_low;
-// inout mb07_low;
-// inout mb08_low;
-// inout mb09_low;
-// inout mb10_low;
-// inout mb11_low;
-// inout mem_done_low;
-// inout mq00_low;
-// inout mq01_low;
-// inout mq02_low;
-// inout mq03_low;
-// inout mq04_low;
-// inout mq05_low;
-// inout mq06_low;
-// inout mq07_low;
-// inout mq08_low;
-// inout mq09_low;
-// inout mq10_low;
-// inout mq11_low;
-// inout n15v;
-// inout n30v;
-// inout opr_low;
-// inout pause_low;
-// inout run_low;
-// inout sc0_low;
-// inout sc1_low;
-// inout sc2_low;
-// inout sc3_low;
-// inout sc4_low;
-// inout strobe_low;
-// inout tad_low;
-// inout word_count_low;
-// input acclr;
-// input brq;
-// input c_i_r;
-// input ca_incr_low;
-// input cr_ready;
-// input d00;
-// input d01;
-// input d02;
-// input d03;
-// input d04;
-// input d05;
-// input d06;
-// input d07;
-// input d08;
-// input d09;
-// input d10;
-// input d11;
-// input d_in_low;
-// input da00;
-// input da01;
-// input da02;
-// input da03;
-// input da04;
-// input da05;
-// input da06;
-// input da07;
-// input da08;
-// input da09;
-// input da10;
-// input da11;
-// input dfsr0;
-// input dfsr1;
-// input dfsr2;
-// input eda0;
-// input eda1;
-// input eda2;
-// input ifsr0;
-// input ifsr1;
-// input ifsr2;
-// input in00;
-// input in01;
-// input in02;
-// input in03;
-// input in04;
-// input in05;
-// input in06;
-// input in07;
-// input in08;
-// input in09;
-// input in10;
-// input in11;
-// input index_markers;
-// input io_pc_load;
-// input irq;
-// input key_cont_low;
-// input key_dp_low;
-// input key_ex_low;
-// input key_la_low;
-// input key_si_low;
-// input key_ss_low;
-// input key_st_low;
-// input key_stop_low;
-// input light_pen;
-// input line_in;
-// input mem00;
-// input mem01;
-// input mem02;
-// input mem03;
-// input mem04;
-// input mem05;
-// input mem06;
-// input mem07;
-// input mem08;
-// input mem09;
-// input mem10;
-// input mem11;
-// input mem_incr;
-// input mem_p;
-// input n36v;
-// input n3cycle;
-// input n3vc01;
-// input pun_feed_switch_low;
-// input rd_hole1;
-// input rd_hole2;
-// input rd_hole3;
-// input rd_hole4;
-// input rd_hole5;
-// input rd_hole6;
-// input rd_hole7;
-// input rd_hole8;
-// input rdr_feed_switch;
-// input rx_data;
-// input s_feed_hole;
-// input skipb;
-// input sr00;
-// input sr01;
-// input sr02;
-// input sr03;
-// input sr04;
-// input sr05;
-// input sr06;
-// input sr07;
-// input sr08;
-// input sr09;
-// input sr10;
-// input sr11;
-// input sync_pun;
-// input zone01_index;
-// input zone02_index;
-// input zone03_index;
-// input zone04_index;
-// input zone05_index;
-// input zone06_index;
-// input zone07_index;
-// input zone08_index;
-// input zone09_index;
-// input zone10_index;
-// input zone11_index;
-// input zone12_index;
-// output b_c_low;
-// output b_dc_inst;
-// output b_line_hold_low;
-// output b_mem_start;
-// output b_mem_to_lsr;
-// output ba;
-// output ba_low;
-// output bac00;
-// output bac01;
-// output bac02;
-// output bac03;
-// output bac04;
-// output bac05;
-// output bac06;
-// output bac07;
-// output bac08;
-// output bac09;
-// output bac10;
-// output bac11;
-// output badd_accepted_low;
-// output bb;
-// output bb_low;
-// output bbreak;
-// output binitialize_low;
-// output biop1_low;
-// output biop2_low;
-// output biop4_low;
-// output bma00;
-// output bma01;
-// output bma02;
-// output bma03;
-// output bma04;
-// output bma05;
-// output bma06;
-// output bma07;
-// output bma08;
-// output bma09;
-// output bma10;
-// output bma11;
-// output bmb00;
-// output bmb01;
-// output bmb02;
-// output bmb03;
-// output bmb03_low;
-// output bmb04;
-// output bmb04_low;
-// output bmb05;
-// output bmb05_low;
-// output bmb06;
-// output bmb06_low;
-// output bmb07;
-// output bmb07_low;
-// output bmb08;
-// output bmb08_low;
-// output bmb09;
-// output bmb10;
-// output bmb11;
-// output brun_low;
-// output bstlr;
-// output btp2;
-// output btp3;
-// output bts1;
-// output bts3;
-// output btt_inst_low;
-// output bwc_overflow;
-// output cr_read;
-// output defer_low;
-// output df0_low;
-// output df1_low;
-// output df2_low;
-// output drum_down;
-// output drum_up;
-// output ea0;
-// output ea1;
-// output ea2;
-// output feed_hole;
-// output hole1;
-// output hole2;
-// output hole3;
-// output hole4;
-// output hole5;
-// output hole6;
-// output hole7;
-// output hole8;
-// output if0_low;
-// output if1_low;
-// output if2_low;
-// output mb_parity_odd;
-// output mcbmb00_low;
-// output mcbmb01_low;
-// output mcbmb02_low;
-// output mcbmb03_low;
-// output mcbmb04_low;
-// output mcbmb05_low;
-// output mcbmb06_low;
-// output mcbmb07_low;
-// output mcbmb08_low;
-// output mcbmb09_low;
-// output mcbmb10_low;
-// output mcbmb11_low;
-// output pc00_low;
-// output pc01_low;
-// output pc02_low;
-// output pc03_low;
-// output pc04_low;
-// output pc05_low;
-// output pc06_low;
-// output pc07_low;
-// output pc08_low;
-// output pc09_low;
-// output pc10_low;
-// output pc11_low;
-// output pen_down;
-// output pen_left;
-// output pen_right;
-// output pen_up;
-// output pwr;
-// output reader_run_low;
-// output tx_data;
-// output x_axis;
-// output y_axis;
-// output z_axis;

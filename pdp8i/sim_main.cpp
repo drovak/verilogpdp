@@ -21,7 +21,9 @@ int did_hlt_msg = 0;
 int do_tx = 0;
 int old_run = 0;
 int old_tp4 = 0;
+int old_tp3 = 0;
 int started = 0;
+int old_dt_ef = 0;
 
 const char *bin_name = NULL;
 int start_addr = 0200;
@@ -34,6 +36,19 @@ clock_t t_start, t_end;
 
 int ignore_stdin = 0;
 char buf;
+
+struct termios old_term, new_term;
+
+uint16_t *mem;
+
+uint16_t old_7755 = ~0;
+
+void restore_term() {
+    if (tcsetattr(STDIN_FILENO, TCSANOW, &old_term) < 0) {
+        perror("tcsetattr");
+        exit(1);
+    }
+}
 
 void status(Vtop *top) {
     VL_PRINTF("[time: %" VL_PRI64 "d ns  ", main_time);
@@ -62,7 +77,6 @@ int main(int argc, char** argv, char** env) {
 	}
 #endif
 
-    struct termios old_term, new_term;
     if (tcgetattr(STDIN_FILENO, &old_term) < 0) {
         perror("tcgetattr");
         exit(1);
@@ -110,14 +124,17 @@ int main(int argc, char** argv, char** env) {
 
     if (bin_name == NULL) {
         printf("error: no bin file specified\n");
+        restore_term();
         exit(-1);
     }
     if (start_addr < 0 || start_addr > 07777) {
         printf("error: invalid starting address\n");
+        restore_term();
         exit(-1);
     }
     if (init_sr < 0 || init_sr > 07777) {
         printf("error: invalid switch register setting\n");
+        restore_term();
         exit(-1);
     }
     if (runtime == 0)
@@ -129,7 +146,7 @@ int main(int argc, char** argv, char** env) {
 #else
     printf("logging disabled\n");
 #endif
-
+    mem = top->top__DOT__pdp__DOT__core_mem__DOT__ram;
     top->clk = 0;
 	top->rst = 1;
 	top->start = 0;
@@ -248,6 +265,47 @@ int main(int argc, char** argv, char** env) {
             did_hlt_msg = 0;
         }
 
+        /*
+        // print status on every fetch after some time
+        if (main_time > 1737260890 && top->state_fetch && top->tp3 && !old_tp3) {
+            VL_PRINTF("[%" VL_PRI64 "d] ", main_time);
+            printf("pc: %04o lac: %05o ma: %04o mb: %04o mq: %04o sc: %02o if: %o df: %o\n", 
+                top->pc, top->lac, top->ma, top->mb, top->mq, top->sc, top->instf, top->dataf);
+        }
+        */
+
+        // print DECtape handler status
+        if (top->state_fetch && top->tp3 && !old_tp3 && top->mem_addr == 07610) {
+            VL_PRINTF("[%" VL_PRI64 "d] ", main_time);
+            printf("DT handler: called from %05o fun: %04o buf: %04o rec: %04o\n", (top->dataf << 12) | ((mem[07607] - 1) & 07777),
+                mem[(top->dataf << 12) | mem[07607]], mem[(top->dataf << 12) | mem[07607] + 1], mem[(top->dataf << 12) | mem[07607] + 2]);
+        }
+
+        /*
+        // print break status
+        if (top->state_break && top->tp3 && !old_tp3)
+            VL_PRINTF("[%" VL_PRI64 "d] break: %05o = %04o\n", main_time, top->mem_addr, top->mb);
+        */
+        old_tp3 = top->tp3;
+
+        // print any TC08 errors
+        if (top->ef && !old_dt_ef) {
+            VL_PRINTF("[%" VL_PRI64 "d] ", main_time);
+            printf("dt err: ");
+            if (top->mktk)
+                printf("mktk ");
+            if (top->end_h)
+                printf("end ");
+            if (top->sel)
+                printf("sel ");
+            if (top->par)
+                printf("par ");
+            if (top->tim)
+                printf("tim ");
+            printf("\n");
+        }
+        old_dt_ef = top->ef;
+
         // reset cycle count on start
         if (!old_run && top->run) {
             cycle_count = 0;
@@ -296,5 +354,6 @@ int main(int argc, char** argv, char** env) {
     else
         VL_PRINTF("(%.1f nanoseconds per second)\n", speed);
 
+    restore_term();
     exit(0);
 }

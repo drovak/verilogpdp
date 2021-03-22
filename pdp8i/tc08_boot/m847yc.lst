@@ -1,0 +1,50 @@
+
+
+
+      /MI8-EC (TC08 DECtape)                                              Page 1
+
+
+    1              /MI8-EC (TC08 DECtape)
+    2        6766  DTLA=6766       / LOAD REGISTER A
+    3        6771  DTSF=6771       / SKIP ON FLAGS
+    4        6774  DTLB=6774       / LOAD REGISTER B
+    5                      FIELD   0
+    6        7554          *7554
+    7 07554  7600  START,  7600            / CLA; ALSO LOADING ADDRESS, AND COUNT
+    8 07555  6774          DTLB            / TRANSFER TO FIELD 0
+    9 07556  1374          TAD MOVE        / GET A MOVE COMMAND
+   10 07557  6766          DTLA            / MOVE
+   11 07560  6771          DTSF            / WAIT FOR IT
+   12 07561  5360          JMP .-1
+   13 07562  7240          CLA CMA         / GET LOADING ADDRESS - 1
+   14 07563  1354          TAD START
+   15 07564  3773          DCA I IDCA      / SET CA
+   16 07565  1354          TAD START       / GET COUNT
+   17 07566  3772          DCA I IDWC      / SET WC
+   18 07567  1375          TAD READ        / GET A READ COMMAND
+   19 07570  6766          DTLA            / READ
+   20 07571  5376          JMP WAIT        / GO WAIT
+   21 07572  7754  IDWC,   7754            / PTR TO WC
+   22 07573  7755  IDCA,   7755            / PTR TO CA
+   23 07574  0600  MOVE,   0600            / MOVE, NORMAL, GO
+   24 07575  0220  READ,   0220            / READ, GO
+   25 07576  6771  WAIT,   DTSF            / WAIT FOR THE READ
+   26 07577  5376          JMP .-1
+   27              / WHEN THE READ IS FINISHED, FALL THROUGH ONTO THE NEWLY LOADED CODE.
+   28        7600          *7600
+   29 07600  7402          7402            / REPLACED BY THE LOADED CODE.
+   30 07601  7777          7777            / (ALL DIODES REMOVED)
+   31 07602  7777          7777
+   32 07603  7777          7777
+   33 07604  7777          7777
+   34 07605  7777          7777
+   35 07606  7777          7777
+   36 07607  7777          7777
+   37 07610  7777          7777
+   38 07611  7777          7777
+   39 07612  7777          7777
+   40 07613  7777          7777
+   41              $
+
+      No detected errors
+      No links generated

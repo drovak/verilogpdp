@@ -56,12 +56,18 @@ VERILATOR_INPUT = -f input.vc top.v uart.v -y modules sim_main.cpp control.cpp
 #TEST_ARGS = -b maindec/maindec-08-d04b-pb.bin -i -s 0200 -r 04000 -t 15000000000
 #TEST_ARGS = -b maindec/maindec-8i-d0aa-pb.bin -i -s 0200 -r 05000 -t 40033500000
 #TEST_ARGS = -b maindec/maindec-8i-d0ba-pb.bin -i -s 0201 -r 00040 -t 2000000000 -l 1130000000
-TEST_ARGS = -b maindec/maindec-08-d1ec-pb.bin -s 0200 -r 00000
+#TEST_ARGS = -b maindec/maindec-08-d1ec-pb.bin -s 0200 -r 00000
 #TEST_ARGS = -b nmi_test/nmi_test.bin -i -s 0200 -t 100000
 #TEST_ARGS = -b dvi_test/dvi_test.bin -i -s 0200 -t 200000
 #TEST_ARGS = -b tty_test/tty_test.bin -s 0200 -t 25000000
 #TEST_ARGS = -b tty_test/tty_test2.bin -s 0200
 #TEST_ARGS = -b focal69/focal69.bin -s 0200
+#TEST_ARGS = -b ema_test/ema_test.bin -s 0200 -c 200
+#TEST_ARGS = -b maindec/maindec-08-ditca-a-pb.bin -s 0200
+#TEST_ARGS = -b tc08_boot/tc08_boot.bin -s 0200 -t 1815099630 -l 40010000
+#TEST_ARGS = -b tc08_boot/tc08_boot.bin -s 0200 -l 1602885460 -t 1740000000
+#TEST_ARGS = -b tc08_boot/tc08_boot.bin -s 0200 -l 965262740
+TEST_ARGS = -b tc08_boot/tc08_boot.bin -s 0200
 
 #EXE = numactl -m 0 -C 0,1 -- obj_dir/Vtop
 EXE = obj_dir/Vtop
@@ -72,6 +78,7 @@ default: run
 run:
 	@echo
 	@echo "-- VERILATE ----------------"
+	#$(VERILATOR) $(VERILATOR_FLAGS) --trace --trace-depth 1 $(VERILATOR_INPUT)
 	$(VERILATOR) $(VERILATOR_FLAGS) --trace $(VERILATOR_INPUT)
 
 	@echo
@@ -80,8 +87,9 @@ run:
 
 	@echo
 	@echo "-- RUN ---------------------"
-	@rm -rf logs
-	@mkdir -p logs
+	#@rm -rf logs
+	#@mkdir -p logs
+	rm -f logs/*
 	$(EXE) +trace $(TEST_ARGS)
 
 	@echo
@@ -150,6 +158,72 @@ focal:
 	@echo "-- DONE --------------------"
 	@echo
 ######################################################################
+tc08_boot:
+	@echo
+	@echo "-- VERILATE ----------------"
+	$(VERILATOR) $(VERILATOR_FLAGS) --trace $(VERILATOR_INPUT)
+
+	@echo
+	@echo "-- BUILD -------------------"
+	$(MAKE) -j -C obj_dir -f ../Makefile_obj
+
+	@echo
+	@echo "-- RUN ---------------------"
+	@rm -rf logs
+	@mkdir -p logs
+	$(EXE) +trace -b tc08_boot/m847yc.bin -s 07554 -t 200000000
+
+	@echo
+	@echo "-- DONE --------------------"
+	@echo "To see waveforms, open vlt_dump.vcd in a waveform viewer"
+	@echo
+######################################################################
+tc08_test: tc08_test.bin
+	@echo
+	@echo "-- VERILATE ----------------"
+	$(VERILATOR) $(VERILATOR_FLAGS) --trace $(VERILATOR_INPUT)
+
+	@echo
+	@echo "-- BUILD -------------------"
+	$(MAKE) -j -C obj_dir -f ../Makefile_obj
+
+	@echo
+	@echo "-- RUN ---------------------"
+	@rm -rf logs
+	@mkdir -p logs
+	$(EXE) +trace -b tc08_test/tc08_test.bin -s 0200 -t 200000000
+
+	@echo
+	@echo "-- DONE --------------------"
+	@echo "To see waveforms, open vlt_dump.vcd in a waveform viewer"
+	@echo
+######################################################################
+ema_test: ema_test.bin
+	@echo
+	@echo "-- VERILATE ----------------"
+	$(VERILATOR) $(VERILATOR_FLAGS) --trace $(VERILATOR_INPUT)
+
+	@echo
+	@echo "-- BUILD -------------------"
+	$(MAKE) -j -C obj_dir -f ../Makefile_obj
+
+	@echo
+	@echo "-- RUN ---------------------"
+	@rm -rf logs
+	@mkdir -p logs
+	$(EXE) -b ema_test/ema_test.bin -s 0200 -c 100
+
+	@echo
+	@echo "-- DONE --------------------"
+	@echo "To see waveforms, open vlt_dump.vcd in a waveform viewer"
+	@echo
+######################################################################
+ema_test.bin:
+	cd ema_test && palbart ema_test.pal
+
+tc08_test.bin:
+	cd tc08_test && palbart tc08_test.pal
+
 # Other targets
 
 show-config:

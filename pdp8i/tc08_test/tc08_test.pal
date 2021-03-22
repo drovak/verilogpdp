@@ -1,0 +1,8 @@
+        *200
+        TAD (1210
+        DTCA
+        DTXA
+        DTSF
+        JMP .-1
+        JMP .
+		$
