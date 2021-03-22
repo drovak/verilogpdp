@@ -44,7 +44,7 @@ reg [3:0] pulse_delay;
 assign D2 = (pulse_delay > 0) ? 1'b1 : 1'b0;
 assign E2 = (pulse_delay > 0) ? 1'b0 : 1'b1;
 
-localparam [22:0] MAX_COUNT = {$rtoi(100e6 / FREQ) - 1}[22:0];
+localparam MAX_COUNT = $rtoi(100e6 / FREQ) - 1;
 
 always @(posedge clk) begin
 	if (pulse_delay > 0) begin
@@ -52,7 +52,9 @@ always @(posedge clk) begin
 		else pulse_delay <= 0;
 	end
 
+/* verilator lint_off WIDTH */
 	if (count >= MAX_COUNT) begin
+/* lint_on */
 		count <= 0;
 		pulse_delay <= 'b1;
     end else if (en) begin
