@@ -73,12 +73,13 @@ TEST_ARGS = -b tc08_boot/tc08_boot.bin -s 0200
 EXE = obj_dir/Vtop
 
 ######################################################################
-default: run
+default: notrace
 
-run:
+.PHONY: trace
+trace:
 	@echo
 	@echo "-- VERILATE ----------------"
-	#$(VERILATOR) $(VERILATOR_FLAGS) --trace --trace-depth 1 $(VERILATOR_INPUT)
+#	$(VERILATOR) $(VERILATOR_FLAGS) --trace --trace-depth 1 $(VERILATOR_INPUT)
 	$(VERILATOR) $(VERILATOR_FLAGS) --trace $(VERILATOR_INPUT)
 
 	@echo
@@ -98,6 +99,7 @@ run:
 	@echo
 
 ######################################################################
+.PHONY: notrace
 notrace:
 	@echo
 	@echo "-- VERILATE ----------------"
@@ -116,6 +118,7 @@ notrace:
 	@echo
 
 ######################################################################
+.PHONY: test
 test:
 	@echo
 	@echo "-- VERILATE ----------------"
@@ -141,6 +144,7 @@ test:
 	@echo "-- DONE --------------------"
 	@echo
 ######################################################################
+.PHONY: focal
 focal:
 	@echo
 	@echo "-- VERILATE ----------------"
@@ -158,6 +162,7 @@ focal:
 	@echo "-- DONE --------------------"
 	@echo
 ######################################################################
+.PHONY: tc08_boot
 tc08_boot:
 	@echo
 	@echo "-- VERILATE ----------------"
@@ -178,7 +183,8 @@ tc08_boot:
 	@echo "To see waveforms, open vlt_dump.vcd in a waveform viewer"
 	@echo
 ######################################################################
-tc08_test: tc08_test.bin
+.PHONY: tc08_test
+tc08_test: tc08_test/tc08_test.bin
 	@echo
 	@echo "-- VERILATE ----------------"
 	$(VERILATOR) $(VERILATOR_FLAGS) --trace $(VERILATOR_INPUT)
@@ -198,7 +204,8 @@ tc08_test: tc08_test.bin
 	@echo "To see waveforms, open vlt_dump.vcd in a waveform viewer"
 	@echo
 ######################################################################
-ema_test: ema_test.bin
+.PHONY: ema_test
+ema_test: ema_test/ema_test.bin
 	@echo
 	@echo "-- VERILATE ----------------"
 	$(VERILATOR) $(VERILATOR_FLAGS) --trace $(VERILATOR_INPUT)
@@ -218,10 +225,10 @@ ema_test: ema_test.bin
 	@echo "To see waveforms, open vlt_dump.vcd in a waveform viewer"
 	@echo
 ######################################################################
-ema_test.bin:
+ema_test/ema_test.bin:
 	cd ema_test && palbart ema_test.pal
 
-tc08_test.bin:
+tc08_test/tc08_test.bin:
 	cd tc08_test && palbart tc08_test.pal
 
 # Other targets
