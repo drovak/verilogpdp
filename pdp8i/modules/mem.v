@@ -8,10 +8,14 @@ module mem (
 	output strobe_n,
 	input wire [14:0] addr,
 	input wire [11:0] data_in,
-	output reg [11:0] data_out
+	output reg [11:0] data_out,
+    output [11:0] dt_ca,
+    output [11:0] dt_wc
 	);
 
 reg [11:0] ram [0:32767];
+assign dt_wc = ram[15'o7754];
+assign dt_ca = ram[15'o7755];
 
 reg prev_mem_start;
 
@@ -20,10 +24,12 @@ reg [7:0] timer;
 
 wire strobe = ((timer >= 8'd50) && (timer < 8'd60)) ? 1'b1 : 1'b0;
 assign strobe_n = !strobe;
-wire write = ((timer >= 8'd80) && (timer < 8'd149)) ? 1'b1 : 1'b0;
+//wire write = ((timer >= 8'd80) && (timer < 8'd149)) ? 1'b1 : 1'b0;
+wire write = (timer == 8'd80) ? 1'b1 : 1'b0;
 assign mem_done_n = (timer >= 8'd149) ? 1'b0 : 1'b1;
 
 always @(posedge clk) begin
+
 	prev_mem_start <= mem_start;
 	if (mem_start && !prev_mem_start) begin
 		timer <= 1;
