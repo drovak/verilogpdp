@@ -3,7 +3,7 @@ module tu55 (
     rst,
     /***** front panel stuff *****/
     //unit_number,
-    //write_enable,
+    write_enable,
     //remote,
     //seek_left,
     //seek_right,
@@ -13,41 +13,42 @@ module tu55 (
     t_fwd_l, t_go_l, //t_pwr_clr_l, t_rev_l, t_stop_l, // transport control
 
     /***** to TC08 *****/
-    //t_single_unit_l, t_write_ok_l, 
+    //t_single_unit_l, 
+    t_write_ok_l, 
 
     /***** tape heads *****/
     t_trk_rd_pos, t_trk_rd_neg, 
     rdmk_rd_pos, rdmk_rd_neg, 
     rdd_02_rd_pos, rdd_02_rd_neg, 
     rdd_01_rd_pos, rdd_01_rd_neg, 
-    rdd_00_rd_pos, rdd_00_rd_neg
+    rdd_00_rd_pos, rdd_00_rd_neg,
     //t_trk_wr_pos, t_trk_wr_neg, 
     //rdmk_wr_pos, rdmk_wr_neg, 
-    //rdd_02_wr_pos, rdd_02_wr_neg, 
-    //rdd_01_wr_pos, rdd_01_wr_neg, 
-    //rdd_00_wr_pos, rdd_00_wr_neg
+    rdd_02_wr_pos, rdd_02_wr_neg, 
+    rdd_01_wr_pos, rdd_01_wr_neg, 
+    rdd_00_wr_pos, rdd_00_wr_neg
 );
 
-input clk, rst, t_go_l, t_fwd_l;
+input clk, rst;
 
-/*
-input [2:0] unit_number;
+//input [2:0] unit_number;
 input write_enable;
+/*
 input remote;
 input seek_left;
 input seek_right;
+*/
 
-input t_trk_wr_pos;
-input t_trk_wr_neg;
-input rdmk_wr_pos;
-input rdmk_wr_neg;
+//input t_trk_wr_pos;
+//input t_trk_wr_neg;
+//input rdmk_wr_pos;
+//input rdmk_wr_neg;
 input rdd_02_wr_pos;
 input rdd_02_wr_neg;
 input rdd_01_wr_pos;
 input rdd_01_wr_neg;
 input rdd_00_wr_pos;
 input rdd_00_wr_neg;
-*/
 
 output t_trk_rd_pos;
 output t_trk_rd_neg;
@@ -60,10 +61,10 @@ output rdd_01_rd_neg;
 output rdd_00_rd_pos;
 output rdd_00_rd_neg;
 
-/*
-output t_single_unit_l;
-output t_write_ok_l;
+//output t_single_unit_l;
+output t_write_ok_l = !write_enable;
 
+/*
 input t_00_l;
 input t_01_l;
 input t_02_l;
@@ -72,12 +73,23 @@ input t_04_l;
 input t_05_l;
 input t_06_l;
 input t_07_l;
-input t_fwd_l;
-input t_go_l;
-input t_pwr_clr_l;
 input t_rev_l;
 input t_stop_l;
 */
+input t_fwd_l;
+input t_go_l;
+//input t_pwr_clr_l;
+
+/*
+wire [3:0] sel_unit = (!t_00_l) ? 4'h0 :
+                      (!t_01_l) ? 4'h1 :
+                      (!t_02_l) ? 4'h2 :
+                      (!t_03_l) ? 4'h3 :
+                      (!t_04_l) ? 4'h4 :
+                      (!t_05_l) ? 4'h5 :
+                      (!t_06_l) ? 4'h6 :
+                      (!t_07_l) ? 4'h7 : 4'hf;
+                      */
 
 /* motion states */
 localparam MOT_ATSR = -3; // at speed, reverse
@@ -107,26 +119,29 @@ localparam MAX_SPEED = 33950;
 localparam LINES_PER_CLOCK = $rtoi($pow(2,41) * MAX_SPEED / 100e6);
 
 localparam SPEED_THRESH = LINES_PER_CLOCK / 2;
-assign t_trk_rd_pos =  (speed > ( SPEED_THRESH)) ?  time_count[40] : 
-                       (speed < (-SPEED_THRESH)) ? !time_count[40] : 1'b0;
-assign t_trk_rd_neg =  (speed > ( SPEED_THRESH)) ? !time_count[40] : 
-                       (speed < (-SPEED_THRESH)) ?  time_count[40] : 1'b0;
-assign rdmk_rd_pos =   (speed > ( SPEED_THRESH)) ?  tape[pos][3] : 
-                       (speed < (-SPEED_THRESH)) ? !tape[pos][3] : 1'b0;
-assign rdmk_rd_neg =   (speed > ( SPEED_THRESH)) ? !tape[pos][3] : 
-                       (speed < (-SPEED_THRESH)) ?  tape[pos][3] : 1'b0;
-assign rdd_02_rd_pos = (speed > ( SPEED_THRESH)) ?  tape[pos][0] : 
-                       (speed < (-SPEED_THRESH)) ? !tape[pos][0] : 1'b0;
-assign rdd_02_rd_neg = (speed > ( SPEED_THRESH)) ? !tape[pos][0] : 
-                       (speed < (-SPEED_THRESH)) ?  tape[pos][0] : 1'b0;
-assign rdd_01_rd_pos = (speed > ( SPEED_THRESH)) ?  tape[pos][1] : 
-                       (speed < (-SPEED_THRESH)) ? !tape[pos][1] : 1'b0;
-assign rdd_01_rd_neg = (speed > ( SPEED_THRESH)) ? !tape[pos][1] : 
-                       (speed < (-SPEED_THRESH)) ?  tape[pos][1] : 1'b0;
-assign rdd_00_rd_pos = (speed > ( SPEED_THRESH)) ?  tape[pos][2] : 
-                       (speed < (-SPEED_THRESH)) ? !tape[pos][2] : 1'b0;
-assign rdd_00_rd_neg = (speed > ( SPEED_THRESH)) ? !tape[pos][2] : 
-                       (speed < (-SPEED_THRESH)) ?  tape[pos][2] : 1'b0;
+wire tape_fwd = (speed > ( SPEED_THRESH)) ? 1'b1 : 1'b0;
+wire tape_rev = (speed < (-SPEED_THRESH)) ? 1'b1 : 1'b0;
+
+assign t_trk_rd_pos =  (tape_fwd) ?  time_count[40] : 
+                       (tape_rev) ? !time_count[40] : 1'b0;
+assign t_trk_rd_neg =  (tape_fwd) ? !time_count[40] : 
+                       (tape_rev) ?  time_count[40] : 1'b0;
+assign rdmk_rd_pos =   (tape_fwd) ?  tape[pos][3] : 
+                       (tape_rev) ? !tape[pos][3] : 1'b0;
+assign rdmk_rd_neg =   (tape_fwd) ? !tape[pos][3] : 
+                       (tape_rev) ?  tape[pos][3] : 1'b0;
+assign rdd_02_rd_pos = (tape_fwd) ?  tape[pos][0] : 
+                       (tape_rev) ? !tape[pos][0] : 1'b0;
+assign rdd_02_rd_neg = (tape_fwd) ? !tape[pos][0] : 
+                       (tape_rev) ?  tape[pos][0] : 1'b0;
+assign rdd_01_rd_pos = (tape_fwd) ?  tape[pos][1] : 
+                       (tape_rev) ? !tape[pos][1] : 1'b0;
+assign rdd_01_rd_neg = (tape_fwd) ? !tape[pos][1] : 
+                       (tape_rev) ?  tape[pos][1] : 1'b0;
+assign rdd_00_rd_pos = (tape_fwd) ?  tape[pos][2] : 
+                       (tape_rev) ? !tape[pos][2] : 1'b0;
+assign rdd_00_rd_neg = (tape_fwd) ? !tape[pos][2] : 
+                       (tape_rev) ?  tape[pos][2] : 1'b0;
 
 /* 150 ms */
 localparam START_TIME = 15000000; // 10 ns units
@@ -141,7 +156,23 @@ always @(posedge clk) begin
         motion_state <= MOT_STOP;
         speed <= 0;
         time_count <= {21'o122000, 41'b0}; // keep a bit on the spool initially
+    //end else if (sel_unit == {1'b0, unit_number}) begin
     end else begin
+        if (write_enable) begin
+            //if (t_trk_wr_pos ^ t_trk_wr_neg) begin
+            //end
+            //if (rdmk_wr_pos ^ rdmk_wr_neg) begin
+            //end
+            if (rdd_02_wr_pos ^ rdd_02_wr_neg) begin
+                tape[pos][0] <= rdd_02_wr_pos;
+            end
+            if (rdd_01_wr_pos ^ rdd_01_wr_neg) begin
+                tape[pos][1] <= rdd_01_wr_pos;
+            end
+            if (rdd_00_wr_pos ^ rdd_00_wr_neg) begin
+                tape[pos][2] <= rdd_00_wr_pos;
+            end
+        end
         time_count <= time_count + {{30{speed[31]}}, speed};
         case (motion_state)
             MOT_ATSR: begin

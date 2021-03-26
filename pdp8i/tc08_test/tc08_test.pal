@@ -1,8 +1,162 @@
+        /AUTOINC REGS FOR COMPARING BUFFERS
+        *10
+IDX1,   0
+IDX2,   0
+
         *200
-        TAD (1210
-        DTCA
-        DTXA
-        DTSF
+        JMS SHNDLR
+        0100            /READ 1 RECORD STARTING BACKWARDS
+        BUF1            /TO FIRST BUFFER AT 0400
+        0               /STARTING WITH RECORD 0
+        HLT             /ERROR RETURN
+        JMS SHNDLR
+        4100            /WRITE 1 RECORD STARTING BACKWARDS
+        BUF2            /FROM BUFFER AT 0600
+        0               /STARTING WITH RECORD 0
+        HLT             /ERROR RETURN
+        JMS SHNDLR
+        0100            /READ 1 RECORD STARTING BACKWARDS
+        BUF3            /TO BUFFER AT 1000
+        0               /STARTING WITH RECORD 0
+        HLT             /ERROR RETURN
+
+        /NOW COMPARE WRITTEN AND READ BUFFERS
+        CLA
+        TAD (BUF2-1     /GET FIRST ADDRESS FOR AUTOINC
+        DCA IDX1
+        TAD (BUF3-1     /GET SECOND ADDRESS FOR AUTOINC
+        DCA IDX2
+        TAD (-200       /GET NEGATIVE COUNT
+        DCA COUNT
+
+LOOP,   TAD I IDX1      /GET WORD IN FIRST BUFFER
+        CMA IAC         /NEGATE IT
+        TAD I IDX2      /ADD WORD IN SECOND BUFFER
+        SZA CLA         /ARE THEY THE SAME?
+        HLT             /THEY ARE DIFFERENT, HALT
+        ISZ COUNT       /SAME, ARE WE DONE?
+        JMP LOOP        /NOPE
+        HLT             /YEP, BUFFERS ARE THE SAME, HALT
+
+COUNT,  0
+BUF1=0400
+BUF2=0600
+BUF3=1000
+
+
+        /FUNCTION CONTROL WORD:
+        /     0: 0 FOR READ, 1 FOR WRITE
+        /1 TO 5: NUMBER OF 128 WORD RECORDS TO TRANSFER
+        /6 TO 8: MEMORY FIELD
+        /    11: 0 FOR STARTING BACKWARDS, 1 FOR STARTING FORWARDS
+        /BUFFER ADDRESS
+        /STARTING BLOCK
+        /ERROR RETURN
+        /NORMAL RETURN
+
+        *7600
+        SBLOCK=7776     /RELIC FROM OS/8 ASSEMBLY
+        ZBLOCK 7
+SHNDLR, 0
+        CLA CLL CMA RTL
+        DCA SYSCNT      /3 TRIES ON ERROR
+        RDF
+        TAD SCIF
+        DCA SFIELD      /RETURN FIELD SETUP
+        TAD I SHNDLR
+        DCA SFUN
+        ISZ SHNDLR
+        CLA CMA
+        TAD I SHNDLR
+        DCA SLOC        /BUFFER ADDRESS-1
+        ISZ SHNDLR
+STRY,   TAD S410        /SETUP DTA0 TO DO SEARCH REVERSE
+        DTCA DTXA       /BUT MOTION BIT IS NOT ON
+        DTLB
+        CLA CMA CLL RAL
+        DCA SCA         /7776=SBLOCK FROM OS/8 ASSEMBLY
+        TAD SFUN
+        RTR
+        RTR
+SERR,   RTL
+        RAL             /LAST 4 INST. PUT MOTION BIT IN LINK
+                        /IF THIS BIT WAS SET IN THE CALLING
+                        /SEQUENCE, SEARCH STARTS FORWARD.
+S7600,  7600
+        TAD S200
+SC,     SZL
+        TAD S400
+        DTXA            /ZAP MOTION BIT ON
+        DTSF DTRB
         JMP .-1
-        JMP .
-		$
+        SPA             /CHECK FOR ANY ERRORS
+        JMP SERR
+        DTRA            /NO ERRORS
+        RTL
+        CMA RTL         /COMPLEMENT OF DIRECTION TO LINK
+                        /IF LINK ON, SEARCHING FORWARD.
+        SNL CLA
+        CML RTL
+        TAD SBLOCK      /SEARCH FOR ONE RECORD BEFORE THE
+                        /REQUIRED ONE. THEN REVERSE DIRECTION
+        CMA
+        TAD I SHNDLR
+        TAD I SHNDLR    /X+X=2*X; RECORDS TO BLOCKS
+        NOP
+        NOP
+        CMA
+        SZA CLA         /IS IT PROPER RECORD?
+        JMP SC
+        SNL             /YES..IF LINK IS ON,WAS FWD SRCH
+        JMP SC+1        /REVERSE..REVERSE TAPE MOTION
+                        /AND SEARCH FORWARD
+        TAD SLOC
+        DCA SCA
+        TAD SFUN
+        DTLB            /SET UP FIELD
+        TAD SFUN
+        CLL RAL
+        AND S7600
+        DCA SBLKCT      /BLOCK COUNT
+        RAL             /FUNCTION TO BIT 11
+        IFNZRO .-7700   <NZERR>
+        SKP
+        HLT             /TO PROTECT AGAINST BAD PROGRAMMERS
+        IAC
+        CLL CML RTL
+        RTL             /FORMS EITHER READ OR WRITE
+SL,     DTXA
+        TAD S7600
+        DCA SWC         /TRANSFER 200 (8)
+        DTSF DTRB
+        JMP .-1
+        CLL CML         /IN CASE OF FATAL ERROR
+        SPA CLA
+        JMP SERR2
+        TAD SBLKCT
+        TAD S7600
+        SNA             /ALL DONE?
+        JMP SOVER       /YES
+        DCA SBLKCT
+        JMP SL
+SERR2,  ISZ SYSCNT      /TRY AGAIN?
+        JMP STRY
+        SKP             /DON'T BOTHER
+SOVER,  ISZ SHNDLR
+        ISZ SHNDLR
+        TAD S200        /STOP THE TAPE
+        DTXA
+        RAR             /GIVE FATAL RETURN
+SFIELD, HLT
+        JMP I SHNDLR
+SCIF,   CIF 0
+S400,   400
+S200,   200
+S410,   410
+        SBLKCT=7753
+        SYSCNT=7750
+        SFUN=7751
+        SLOC=7752
+        SWC=7754
+        SCA=7755
+                $

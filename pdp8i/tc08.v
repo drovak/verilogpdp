@@ -1,5 +1,6 @@
 module tc08 (
     clk,
+    rst,
 
     /***** from Posibus *****/
     iop_1, iop_2, iop_4,
@@ -93,6 +94,7 @@ module tc08 (
 /* verilator lint_off UNUSED */
 
 input clk;
+input rst;
 
 input i_o_bac_00;
 input i_o_bac_01;
@@ -914,7 +916,7 @@ m111 b06(.A1(bac_00_l), .B1(bac_00), .C1(bac_08_l),
 	.P1(bac_05), .P2(swtm), .R1(bac_06_l), .R2(swtm_l), 
 	.S1(bac_06), .S2(n_t_1x), .T2(n0_to_ac_l), .U1(bac_07), 
 	.V1(bac_07_l));
-m207 b07(.clk(clk), .A1(n0_to_sta_l), .B1(xsta), .C1(bac_00), 
+m207 b07(.clk(clk), .rst(rst), .A1(n0_to_sta_l), .B1(xsta), .C1(bac_00), 
 	.D1(bac_00), .D2(xsta), .E1(usr_00), .E2(bac_01), 
 	.F1(usr_00_l), .F2(bac_01), .H1(xsta), .H2(usr_01), 
 	.J1(bac_02), .J2(usr_01_l), .K1(bac_02), .K2(n0_to_sta_l), 
@@ -1040,7 +1042,7 @@ m111 c06(
 	.N2(wc0_l), .P1(bmb_05), .P2(pwr_clr_l), .R1(bmb_06_l), 
 	.R2(pwr_clr), .S1(bmb_06), .S2(n76), .T2(n76_l), 
 	.U1(bmb_07), .U2(n77), .V1(bmb_07_l), .V2(n77_l));
-m207 c07(.clk(clk),
+m207 c07(.clk(clk), .rst(rst),
 	.A1(n0_to_sta_l), .B1(xsta), .C1(bac_07), .D1(bac_07), 
 	.D2(xsta), .E1(fr_02), .E2(bac_08), .F1(fr_02_l), 
 	.F2(bac_08), .H1(xsta), .H2(fr_03), .J1(bac_09), 
@@ -1178,7 +1180,7 @@ m161 d07(.D1(move_l), .D2(move),
 	.N1(read_all_l), .N2(read_all), .S1(n3v_d09u1), .S2(n3v_d09u1), 
 	.T2(n3v_d09u1), .U1(1'b0), .U2(fr_02), .V1(fr_03), 
 	.V2(fr_01));
-m207 d08(.clk(clk), .A1(n0_to_lpb_l), .B1(n_t_103x), .C1(n_t_93x), 
+m207 d08(.clk(clk), .rst(rst), .A1(n0_to_lpb_l), .B1(n_t_103x), .C1(n_t_93x), 
 	.D1(n_t_93x), .D2(n_t_101x), .E1(lpb_00), .E2(n_t_94x), 
 	.F1(lpb_00_l), .F2(n_t_94x), .H1(n_t_103x), .H2(lpb_03), 
 	.J1(n_t_95x), .J2(lpb_03_l), .K1(n_t_95x), .K2(n0_to_lpb_l), 

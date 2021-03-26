@@ -281,11 +281,12 @@ int main(int argc, char** argv, char** env) {
                 mem[(top->dataf << 12) | mem[07607]], mem[(top->dataf << 12) | mem[07607] + 1], mem[(top->dataf << 12) | mem[07607] + 2]);
         }
 
-        /*
         // print break status
+        /*
         if (top->state_break && top->tp3 && !old_tp3)
             VL_PRINTF("[%" VL_PRI64 "d] break: %05o = %04o\n", main_time, top->mem_addr, top->mb);
         */
+
         old_tp3 = top->tp3;
 
         // print any TC08 errors

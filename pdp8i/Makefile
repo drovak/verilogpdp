@@ -68,6 +68,7 @@ VERILATOR_INPUT = -f input.vc top.v uart.v -y modules sim_main.cpp control.cpp
 #TEST_ARGS = -b tc08_boot/tc08_boot.bin -s 0200 -l 1602885460 -t 1740000000
 #TEST_ARGS = -b tc08_boot/tc08_boot.bin -s 0200 -l 965262740
 TEST_ARGS = -b tc08_boot/tc08_boot.bin -s 0200
+#TEST_ARGS = -b tc08_test/tc08_test.bin -s 0200 -l 390000000
 
 #EXE = numactl -m 0 -C 0,1 -- obj_dir/Vtop
 EXE = obj_dir/Vtop
@@ -197,7 +198,7 @@ tc08_test: tc08_test/tc08_test.bin
 	@echo "-- RUN ---------------------"
 	@rm -rf logs
 	@mkdir -p logs
-	$(EXE) +trace -b tc08_test/tc08_test.bin -s 0200 -t 200000000
+	$(EXE) +trace -b tc08_test/tc08_test.bin -s 0200
 
 	@echo
 	@echo "-- DONE --------------------"
@@ -225,10 +226,10 @@ ema_test: ema_test/ema_test.bin
 	@echo "To see waveforms, open vlt_dump.vcd in a waveform viewer"
 	@echo
 ######################################################################
-ema_test/ema_test.bin:
+ema_test/ema_test.bin: ema_test/ema_test.pal
 	cd ema_test && palbart ema_test.pal
 
-tc08_test/tc08_test.bin:
+tc08_test/tc08_test.bin: tc08_test/tc08_test.pal
 	cd tc08_test && palbart tc08_test.pal
 
 # Other targets

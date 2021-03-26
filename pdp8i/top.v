@@ -210,7 +210,7 @@ pdp8i pdp(clk, rst, dfsr, ifsr, sr, start, stop, load_addr, dep,
           db_l, ea_l, im_l);
 
 wire t_single_unit_l = 1'b0;
-wire t_write_ok_l = 1'b1;
+wire t_write_ok_l;
 wire swtm = 0;
 wire t_00_l, t_01_l, t_02_l, t_03_l, t_04_l, t_05_l, t_06_l, t_07_l;
 wire t_fwd_l, t_go_l, t_pwr_clr_l, t_rev_l, t_stop_l;
@@ -270,6 +270,21 @@ wire
     w01, w02, w03, w04, w05, w06, w07, w08, w09;
 
 tu55 tu55_1 (.clk(clk), .rst(rst), .t_fwd_l(t_fwd_l), .t_go_l(t_go_l),
+    .write_enable(1'b1), .t_write_ok_l(t_write_ok_l),
+
+    /*
+    .t_trk_wr_pos(t_trk_wr_pos), 
+    .t_trk_wr_neg(t_trk_wr_neg), 
+    .rdmk_wr_pos(rdmk_wr_pos),
+    .rdmk_wr_neg(rdmk_wr_neg), 
+    */
+    .rdd_02_wr_pos(rdd_02_wr_pos),
+    .rdd_02_wr_neg(rdd_02_wr_neg), 
+    .rdd_01_wr_pos(rdd_01_wr_pos),
+    .rdd_01_wr_neg(rdd_01_wr_neg), 
+    .rdd_00_wr_pos(rdd_00_wr_pos),
+    .rdd_00_wr_neg(rdd_00_wr_neg),
+
     .t_trk_rd_pos(t_trk_rd_pos),
     .t_trk_rd_neg(t_trk_rd_neg),
     .rdmk_rd_pos(rdmk_rd_pos),
@@ -284,6 +299,7 @@ tu55 tu55_1 (.clk(clk), .rst(rst), .t_fwd_l(t_fwd_l), .t_go_l(t_go_l),
     
 tc08 tc (
     clk,
+    rst,
 
     /***** from Posibus *****/
     iop_1, iop_2, iop_4,

@@ -1,18 +1,199 @@
 
 
 
-              *200                                                        Page 1
+              /AUTOINC REGS FOR COMPARING BUFFERS                         Page 1
 
 
-    1        0200          *200
-    2 00200  1377          TAD (1210
-    3 00201  6762          DTCA
-    4 00202  6764          DTXA
-    5 00203  6771          DTSF
-    6 00204  5203          JMP .-1
-    7 00205  5205          JMP .
-      00377  1210
-    8                              $
+    1                      /AUTOINC REGS FOR COMPARING BUFFERS
+    2        0010          *10
+    3 00010  0000  IDX1,   0
+    4 00011  0000  IDX2,   0
+    5              
+    6        0200          *200
+    7 00200  4777@         JMS SHNDLR
+    8 00201  0100          0100            /READ 1 RECORD STARTING BACKWARDS
+    9 00202  0400          BUF1            /TO FIRST BUFFER AT 0400
+   10 00203  0000          0               /STARTING WITH RECORD 0
+   11 00204  7402          HLT             /ERROR RETURN
+   12 00205  4777@         JMS SHNDLR
+   13 00206  4100          4100            /WRITE 1 RECORD STARTING BACKWARDS
+   14 00207  0600          BUF2            /FROM BUFFER AT 0600
+   15 00210  0000          0               /STARTING WITH RECORD 0
+   16 00211  7402          HLT             /ERROR RETURN
+   17 00212  4777@         JMS SHNDLR
+   18 00213  0100          0100            /READ 1 RECORD STARTING BACKWARDS
+   19 00214  1000          BUF3            /TO BUFFER AT 1000
+   20 00215  0000          0               /STARTING WITH RECORD 0
+   21 00216  7402          HLT             /ERROR RETURN
+   22              
+   23                      /NOW COMPARE WRITTEN AND READ BUFFERS
+   24 00217  7200          CLA
+   25 00220  1376          TAD (BUF2-1     /GET FIRST ADDRESS FOR AUTOINC
+   26 00221  3010          DCA IDX1
+   27 00222  1375          TAD (BUF3-1     /GET SECOND ADDRESS FOR AUTOINC
+   28 00223  3011          DCA IDX2
+   29 00224  1374          TAD (-200       /GET NEGATIVE COUNT
+   30 00225  3236          DCA COUNT
+   31              
+   32 00226  1410  LOOP,   TAD I IDX1      /GET WORD IN FIRST BUFFER
+   33 00227  7041          CMA IAC         /NEGATE IT
+   34 00230  1411          TAD I IDX2      /ADD WORD IN SECOND BUFFER
+   35 00231  7640          SZA CLA         /ARE THEY THE SAME?
+   36 00232  7402          HLT             /THEY ARE DIFFERENT, HALT
+   37 00233  2236          ISZ COUNT       /SAME, ARE WE DONE?
+   38 00234  5226          JMP LOOP        /NOPE
+   39 00235  7402          HLT             /YEP, BUFFERS ARE THE SAME, HALT
+   40              
+   41 00236  0000  COUNT,  0
+   42        0400  BUF1=0400
+   43        0600  BUF2=0600
+   44        1000  BUF3=1000
+   45              
+   46              
+   47                      /FUNCTION CONTROL WORD:
+   48                      /     0: 0 FOR READ, 1 FOR WRITE
+   49                      /1 TO 5: NUMBER OF 128 WORD RECORDS TO TRANSFER
+   50                      /6 TO 8: MEMORY FIELD
+
+
+
+              /AUTOINC REGS FOR COMPARING BUFFERS                         Page 2
+
+
+   51                      /    11: 0 FOR STARTING BACKWARDS, 1 FOR STARTING FORWARDS
+   52                      /BUFFER ADDRESS
+   53                      /STARTING BLOCK
+   54                      /ERROR RETURN
+   55                      /NORMAL RETURN
+   56              
+      00374  7600
+      00375  0777
+      00376  0577
+      00377  7607
+   57        7600          *7600
+   58        7776          SBLOCK=7776     /RELIC FROM OS/8 ASSEMBLY
+   59 07600  0000          ZBLOCK 7
+      07601  0000
+      07602  0000
+      07603  0000
+      07604  0000
+      07605  0000
+      07606  0000
+   60 07607  0000  SHNDLR, 0
+   61 07610  7346          CLA CLL CMA RTL
+   62 07611  3350          DCA SYSCNT      /3 TRIES ON ERROR
+   63 07612  6214          RDF
+   64 07613  1335          TAD SCIF
+   65 07614  3333          DCA SFIELD      /RETURN FIELD SETUP
+   66 07615  1607          TAD I SHNDLR
+   67 07616  3351          DCA SFUN
+   68 07617  2207          ISZ SHNDLR
+   69 07620  7240          CLA CMA
+   70 07621  1607          TAD I SHNDLR
+   71 07622  3352          DCA SLOC        /BUFFER ADDRESS-1
+   72 07623  2207          ISZ SHNDLR
+   73 07624  1340  STRY,   TAD S410        /SETUP DTA0 TO DO SEARCH REVERSE
+   74 07625  6766          DTCA DTXA       /BUT MOTION BIT IS NOT ON
+   75 07626  6774          DTLB
+   76 07627  7344          CLA CMA CLL RAL
+   77 07630  3355          DCA SCA         /7776=SBLOCK FROM OS/8 ASSEMBLY
+   78 07631  1351          TAD SFUN
+   79 07632  7012          RTR
+   80 07633  7012          RTR
+   81 07634  7006  SERR,   RTL
+   82 07635  7004          RAL             /LAST 4 INST. PUT MOTION BIT IN LINK
+   83                                      /IF THIS BIT WAS SET IN THE CALLING
+   84                                      /SEQUENCE, SEARCH STARTS FORWARD.
+   85 07636  7600  S7600,  7600
+   86 07637  1337          TAD S200
+   87 07640  7430  SC,     SZL
+   88 07641  1336          TAD S400
+   89 07642  6764          DTXA            /ZAP MOTION BIT ON
+   90 07643  6773          DTSF DTRB
+
+
+
+              /AUTOINC REGS FOR COMPARING BUFFERS                         Page 3
+
+
+   91 07644  5243          JMP .-1
+   92 07645  7510          SPA             /CHECK FOR ANY ERRORS
+   93 07646  5234          JMP SERR
+   94 07647  6761          DTRA            /NO ERRORS
+   95 07650  7006          RTL
+   96 07651  7046          CMA RTL         /COMPLEMENT OF DIRECTION TO LINK
+   97                                      /IF LINK ON, SEARCHING FORWARD.
+   98 07652  7620          SNL CLA
+   99 07653  7026          CML RTL
+  100 07654  1376          TAD SBLOCK      /SEARCH FOR ONE RECORD BEFORE THE
+  101                                      /REQUIRED ONE. THEN REVERSE DIRECTION
+  102 07655  7040          CMA
+  103 07656  1607          TAD I SHNDLR
+  104 07657  1607          TAD I SHNDLR    /X+X=2*X; RECORDS TO BLOCKS
+  105 07660  7000          NOP
+  106 07661  7000          NOP
+  107 07662  7040          CMA
+  108 07663  7640          SZA CLA         /IS IT PROPER RECORD?
+  109 07664  5240          JMP SC
+  110 07665  7420          SNL             /YES..IF LINK IS ON,WAS FWD SRCH
+  111 07666  5241          JMP SC+1        /REVERSE..REVERSE TAPE MOTION
+  112                                      /AND SEARCH FORWARD
+  113 07667  1352          TAD SLOC
+  114 07670  3355          DCA SCA
+  115 07671  1351          TAD SFUN
+  116 07672  6774          DTLB            /SET UP FIELD
+  117 07673  1351          TAD SFUN
+  118 07674  7104          CLL RAL
+  119 07675  0236          AND S7600
+  120 07676  3353          DCA SBLKCT      /BLOCK COUNT
+  121 07677  7004          RAL             /FUNCTION TO BIT 11
+  122                      IFNZRO .-7700   <NZERR>
+  123 07700  7410          SKP
+  124 07701  7402          HLT             /TO PROTECT AGAINST BAD PROGRAMMERS
+  125 07702  7001          IAC
+  126 07703  7126          CLL CML RTL
+  127 07704  7006          RTL             /FORMS EITHER READ OR WRITE
+  128 07705  6764  SL,     DTXA
+  129 07706  1236          TAD S7600
+  130 07707  3354          DCA SWC         /TRANSFER 200 (8)
+  131 07710  6773          DTSF DTRB
+  132 07711  5310          JMP .-1
+  133 07712  7120          CLL CML         /IN CASE OF FATAL ERROR
+  134 07713  7710          SPA CLA
+  135 07714  5323          JMP SERR2
+  136 07715  1353          TAD SBLKCT
+  137 07716  1236          TAD S7600
+  138 07717  7450          SNA             /ALL DONE?
+  139 07720  5326          JMP SOVER       /YES
+  140 07721  3353          DCA SBLKCT
+
+
+
+              /AUTOINC REGS FOR COMPARING BUFFERS                         Page 4
+
+
+  141 07722  5305          JMP SL
+  142 07723  2350  SERR2,  ISZ SYSCNT      /TRY AGAIN?
+  143 07724  5224          JMP STRY
+  144 07725  7410          SKP             /DON'T BOTHER
+  145 07726  2207  SOVER,  ISZ SHNDLR
+  146 07727  2207          ISZ SHNDLR
+  147 07730  1337          TAD S200        /STOP THE TAPE
+  148 07731  6764          DTXA
+  149 07732  7010          RAR             /GIVE FATAL RETURN
+  150 07733  7402  SFIELD, HLT
+  151 07734  5607          JMP I SHNDLR
+  152 07735  6202  SCIF,   CIF 0
+  153 07736  0400  S400,   400
+  154 07737  0200  S200,   200
+  155 07740  0410  S410,   410
+  156        7753          SBLKCT=7753
+  157        7750          SYSCNT=7750
+  158        7751          SFUN=7751
+  159        7752          SLOC=7752
+  160        7754          SWC=7754
+  161        7755          SCA=7755
+  162                              $
 
       No detected errors
-      No links generated
+      3 links generated
