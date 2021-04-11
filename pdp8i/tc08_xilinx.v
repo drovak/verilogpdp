@@ -1,4 +1,4 @@
-module tc08 (
+module tc08_xilinx (
     clk,
     rst,
 
@@ -145,7 +145,7 @@ output im_07_l;
 output im_08_l;
 output im_09_l;
 output im_10_l;
-assign im_10_l = 1'bz;
+assign im_10_l = 1'b1;
 output im_11_l;
 output i_o_skp_rq_l;
 output i_o_int_rq_l;
@@ -565,9 +565,7 @@ wire n_t_81x;
 wire n_t_82x;
 wire n_t_83x;
 wire n_t_84x;
-/* verilator lint_off UNOPTFLAT */
-wire n_t_85x;
-/* lint_on */
+//wire n_t_85x;
 wire n_t_86x;
 wire n_t_91x;
 wire n_t_92x;
@@ -814,9 +812,12 @@ m117 a09(.A1(mk_blk_start_l),
 	.P1(rd_or_wd), .P2(n_t_161x), .R1(xsad), .R2(write_data), 
 	.S1(n_t_138x), .S2(st_final), .T2(mk_blk_end), .U2(n_t_111x), 
 	.V2(n_t_114x));
+wire n_t_85x_source;
+reg n_t_85x;
+always @(posedge clk) n_t_85x <= n_t_85x_source;
 m113 a10(.A1(blk_in_sync_l), .B1(n_t_85x), .C1(n_t_84x), 
 	.D1(n_t_84x), .D2(bac_10_l), .E1(uts), .E2(b_xsta), 
-	.F1(n_t_85x), .F2(n_t_153x), .H1(fr_01), .H2(pwr_clr_l), 
+	.F1(n_t_85x_source), .F2(n_t_153x), .H1(fr_01), .H2(pwr_clr_l), 
 	.J1(write_ok_l), .J2(n_t_153x), .K1(n_t_46x), .K2(n0_to_ef), 
 	.L1(read_data), .L2(csta_l), .M1(lpb_not_eq_1), .M2(pwr_clr_l), 
 	.N1(n_t_125x), .N2(n0_to_sta), .P1(st_ck), .P2(df), 
@@ -867,7 +868,7 @@ g888 a21(.clk(clk), .D2(rdd_00_rd_pos), .E2(rdd_00_rd_neg), .J2(rdd_00_wr_pos),
 /*
 m502 a22(.D2(write_ok), .H2(t_write_ok_l));
 */
-m633 a23(
+m633_xilinx a23(
 	.A1(bmr01_l), .B1(bmr01), .C1(1'b0), .D1(t_go_l), 
 	.D2(n02_l), .E1(t_stop_l), .E2(n03_l), .F1(bmr00), 
 	.F2(1'b0), .H1(bmr00_l), .H2(t_02_l), .J1(1'b0), 
@@ -880,7 +881,7 @@ m633 a23(
 g821 ab01(.AF1(1'b1), .AH1(1'b1), 
 	.AJ1(1'b1), .AK1(1'b1));
 */
-m623 b02(.A1(dtb_00_l), .B1(dtb_01_l), 
+m623_xilinx b02(.A1(dtb_00_l), .B1(dtb_01_l), 
 	.C1(b_brk_l), .D1(db_00_l), .D2(dtb_06_l), .E1(db_01_l), 
 	.E2(dtb_07_l), .F1(dtb_02_l), .F2(b_brk_l), .H1(dtb_03_l), 
 	.H2(db_06_l), .J1(b_brk_l), .J2(db_07_l), .K1(db_02_l), 
@@ -888,7 +889,8 @@ m623 b02(.A1(dtb_00_l), .B1(dtb_01_l),
 	.M2(b_brk_l), .N1(dtb_05_l), .N2(db_08_l), .P1(b_brk_l), 
 	.P2(db_09_l), .R1(db_04_l), .R2(dtb_10_l), .S1(db_05_l), 
 	.S2(dtb_11_l), .T2(b_brk_l), .U2(db_10_l), .V2(db_11_l));
-m623 b03(
+/*
+m623_xilinx b03(
 	.A1(usr_00_l), .B1(usr_01_l), .C1(rsta_l), .D1(im_00_l), 
 	.D2(fr_01_l), .E1(im_01_l), .E2(fr_02_l), .F1(usr_02_l), 
 	.F2(rsta_l), .H1(mr00_l), .H2(im_06_l), .J1(rsta_l), 
@@ -896,14 +898,27 @@ m623 b03(
 	.L2(eni_l), .M1(mr01_l), .M2(rsta_l), .N1(fr_00_l), 
 	.N2(im_08_l), .P1(rsta_l), .P2(im_09_l), .R1(im_04_l), 
 	.S1(im_05_l));
-m623 b04(.A1(ef_l), .B1(mktk_l), .C1(rstb_l), 
+m623_xilinx b04(.A1(ef_l), .B1(mktk_l), .C1(rstb_l), 
 	.D1(im_00_l), .D2(mf00_l), .E1(im_01_l), .E2(mf01_l), 
 	.F1(end_l), .F2(rstb_l), .H1(sel_l), .H2(im_06_l), 
 	.J1(rstb_l), .J2(im_07_l), .K1(im_02_l), .K2(mf02_l), 
 	.L1(im_03_l), .L2(dtf_l), .M1(par_l), .M2(rstb_l), 
 	.N1(tim_l), .N2(im_08_l), .P1(rstb_l), .P2(im_11_l), 
 	.R1(im_04_l), .S1(im_05_l));
-m623 b05(.A1(df_l), .B1(int_rq_l), 
+*/
+assign im_00_l = (rsta_l | usr_00_l) & (rstb_l | ef_l);
+assign im_01_l = (rsta_l | usr_01_l) & (rstb_l | mktk_l);
+assign im_02_l = (rsta_l | usr_02_l) & (rstb_l | end_l);
+assign im_03_l = (rsta_l |   mr00_l) & (rstb_l | sel_l);
+assign im_04_l = (rsta_l |   mr01_l) & (rstb_l | par_l);
+assign im_05_l = (rsta_l |  fr_00_l) & (rstb_l | tim_l);
+assign im_06_l = (rsta_l |  fr_01_l) & (rstb_l | mf00_l);
+assign im_07_l = (rsta_l |  fr_02_l) & (rstb_l | mf01_l);
+assign im_08_l = (rsta_l |  fr_03_l) & (rstb_l | mf02_l);
+assign im_09_l = (rsta_l |    eni_l);
+assign im_11_l =                       (rstb_l | dtf_l);
+
+m623_xilinx b05(.A1(df_l), .B1(int_rq_l), 
 	.C1(1'b0), .D1(i_o_brk_rq_l), .D2(mf02_l), .E1(i_o_int_rq_l), 
 	.E2(fr_01_l), .F1(skp_rq_l), .F2(1'b0), .H1(n0_to_ac_l), 
 	.H2(ea_02_l), .J1(1'b0), .J2(i_o_data_in), .K1(i_o_skp_rq_l), 
@@ -1003,7 +1018,7 @@ g888 b20(.clk(clk), .D2(rdd_01_rd_pos),
 g879 b21(
 	.T2(t_single_unit_l), .U2(single_unit));
 */
-m633 b22(.S2(n00_l), .T2(1'b0), 
+m633_xilinx b22(.S2(n00_l), .T2(1'b0), 
 	.V2(t_00_l));
 m101 c01_(.A1(i_o_b_run), .B1(b_run), .C1(n3v_c08u1), 
 	.D1(i_o_b_brk), .E1(b_brk), .F1(i_o_bwc0_l), .H1(wc0));

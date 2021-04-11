@@ -89,7 +89,7 @@ int do_test(Vtop *top, const char *fname, int start_addr, int init_sr, vluint64_
 
     // load new paper tape
     if (main_time == (load_time + 10000)) {
-        load_core(fname, (uint16_t *) top->top__DOT__pdp__DOT__core_mem__DOT__ram);
+        load_core(fname, (uint16_t *) top->top__DOT__core_mem__DOT__ram);
         top->sr = start_addr;
     }
 

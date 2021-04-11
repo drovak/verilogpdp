@@ -3,7 +3,7 @@
 // Used for 8x and 2x baud rate generation
 
 module m452 #(
-	parameter BAUD=230400) (
+	parameter BAUD=9600) (
 	clk, // 100 MHz
 	//A2,  // +5V
 	B2,

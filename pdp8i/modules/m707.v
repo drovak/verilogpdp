@@ -71,18 +71,30 @@ module m707 (
 	BN2,
 	BP2,
 	BR2,
-	BS2
+	BS2,
+    flag,
+    active,
+    stop2,
+    stop15,
+    stop1,
+    freq_div,
+    line,
+    srbit,
+    enable_q
 	//BT2,
 	//BU2,
 	//BV2
 	);
+output flag, active, stop2, stop15, stop1, freq_div, line, enable_q;
+output [8:1] srbit;
 
 //inout AA2, AC2, AT1, BA2, BC2, BT1; // power and grounds
 
 output BJ2, BK2, AV2, AD2, AD1, AL1, BN1, BP1, 
        AK2, AJ1, BR2, AR1;
 
-output BJ1 = 1'b1; // +3V output
+output BJ1; // +3V output
+assign BJ1 = 1'b1;
 
 input clk;
 
@@ -142,6 +154,38 @@ generate
 		end
 	end
 endgenerate
+/*
+sn7474 srbit_ff1 (.mclk(clk), .clk(freq_div), .clr_n(io_clr_n), 
+                  .pre_n(!(par_in[1] & !load)), .d(srbit[2]), 
+                  .q(srbit[1]), .q_n(srbit_n[1]));
+sn7474 srbit_ff2 (.mclk(clk), .clk(freq_div), .clr_n(io_clr_n), 
+                  .pre_n(!(par_in[2] & !load)), .d(srbit[3]), 
+                  .q(srbit[2]), .q_n(srbit_n[2]));
+sn7474 srbit_ff3 (.mclk(clk), .clk(freq_div), .clr_n(io_clr_n), 
+                  .pre_n(!(par_in[3] & !load)), .d(srbit[4]), 
+                  .q(srbit[3]), .q_n(srbit_n[3]));
+sn7474 srbit_ff4 (.mclk(clk), .clk(freq_div), .clr_n(io_clr_n), 
+                  .pre_n(!(par_in[4] & !load)), .d(srbit[5]), 
+                  .q(srbit[4]), .q_n(srbit_n[4]));
+sn7474 srbit_ff5 (.mclk(clk), .clk(freq_div), .clr_n(io_clr_n), 
+                  .pre_n(!(par_in[5] & !load)), .d(srbit[6]), 
+                  .q(srbit[5]), .q_n(srbit_n[5]));
+sn7474 srbit_ff6 (.mclk(clk), .clk(freq_div), .clr_n(io_clr_n), 
+                  .pre_n(!(par_in[6] & !load)), .d(srbit[7]), 
+                  .q(srbit[6]), .q_n(srbit_n[6]));
+sn7474 srbit_ff7 (.mclk(clk), .clk(freq_div), .clr_n(io_clr_n), 
+                  .pre_n(!(par_in[7] & !load)), .d(srbit[8]), 
+                  .q(srbit[7]), .q_n(srbit_n[7]));
+sn7474 line_ff (.mclk(clk), .clk(freq_div), .clr_n(line_clr_n), 
+                .pre_n(active), .d(srbit[1]), 
+                .q(line), .q_n(line_n));
+sn7474 srbit_ff (.mclk(clk), .clk(freq_div), .clr_n(io_clr_n), 
+                 .pre_n(!(par_in[8] & !load)), .d(enable_q), 
+                 .q(srbit[8]), .q_n(srbit_n[8]));
+sn7474 enable_ff (.mclk(clk), .clk(freq_div), .clr_n(io_clr_n), 
+                  .pre_n(!(par_in[9] & !load)), .d(1'b0), 
+                  .q(enable_q), .q_n(AL1));
+*/
 
 wire freq_div, freq_div_n;
 sn7474 freq_div_ff (.mclk(clk), .clk(BP2), .clr_n(1'b1), .pre_n(io_clr_n),

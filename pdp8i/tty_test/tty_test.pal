@@ -1,5 +1,5 @@
         *200
-        CLA CMA
+        TAD (57
         DCA CHAR
 LOOP,   TAD CHAR
         IAC
@@ -7,15 +7,17 @@ LOOP,   TAD CHAR
         DCA CHAR
         TAD CHAR
         TLS
-        /TSF
-        /JMP .-1
-        KSF
+        TSF
         JMP .-1
-        KRB
-        CMA IAC
-        TAD CHAR
-        SNA
+        CLA
         JMP LOOP
-        HLT
+        /KSF
+        /JMP .-1
+        /KRB
+        /CMA IAC
+        /TAD CHAR
+        /SNA
+        /JMP LOOP
+        /HLT
 CHAR,   .-.
         $

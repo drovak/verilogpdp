@@ -1,13 +1,11 @@
 module pdp8i (
 /* verilator lint_off PINMISSING */
 /* verilator lint_off UNUSED */
-/* verilator lint_off UNDRIVEN */
-/* verilator lint_off UNOPTFLAT */
     input clk,
     input rst,
-    input wire [2:0] dfsr,
-    input wire [2:0] ifsr,
-    input wire [11:0] sr,
+    input [2:0] dfsr,
+    input [2:0] ifsr,
+    input [11:0] sr,
     input start,
     input stop,
     input load_addr,
@@ -34,20 +32,26 @@ module pdp8i (
     output state_word_count,
     output state_cur_addr,
     output state_break,
-    output wire [2:0] dataf,
-    output wire [2:0] instf,
-    output wire [11:0] pc,
-    output wire [11:0] ma,
-    output wire [11:0] mb,
-    output wire [12:0] lac,
-    output wire [4:0] sc,
-    output wire [11:0] mq,
+    output [2:0] dataf,
+    output [2:0] instf,
+    output [11:0] pc,
+    output [11:0] ma,
+    output [11:0] mb,
+    output [12:0] lac,
+    output [4:0] sc,
+    output [11:0] mq,
     output tp3_test,
-    output [11:0] dt_wc,
-    output [11:0] dt_ca,
-    output [14:0] mem_addr,
+
+    // Serial comms
     input rx_data,
     output tx_data,
+
+    // Memory (also needs mb and ma from above)
+    output b_mem_start,
+    input mem_done_low,
+    input strobe_low,
+    output [2:0] ea,
+    input [11:0] mem,
 
     // Posibus
     output pb_o_iop1,
@@ -75,7 +79,17 @@ module pdp8i (
     input [11:0] pb_i_da_l,
     input [11:0] pb_i_db_l,
     input [2:0] pb_i_ea_l,
-    input [11:0] pb_i_im_l
+    input [11:0] pb_i_im_l,
+
+    output m707_flag,
+    output m707_active,
+    output m707_stop2,
+    output m707_stop15,
+    output m707_stop1,
+    output m707_freq_div,
+    output m707_line,
+    output [7:0] m707_srbit,
+    output m707_enable_q
 );
 
 // Negibus to Posibus converter
@@ -160,7 +174,6 @@ wire [2:0] nb_ea_l;
 assign {eda0, eda1, eda2} = nb_ea_l;
 
 assign tp3_test = tp3;
-assign mem_addr = {ea0, ea1, ea2, ma};
 
 assign power_clear_low = !rst;
 
@@ -209,7 +222,9 @@ assign mq = {!mq00_low, !mq01_low, !mq02_low, !mq03_low,
              !mq04_low, !mq05_low, !mq06_low, !mq07_low, 
              !mq08_low, !mq09_low, !mq10_low, !mq11_low};
 
-wire [11:0] mem;
+assign ea = {ea0, ea1, ea2};
+
+//wire [11:0] mem;
 assign mem00 = mem[11];
 assign mem01 = mem[10];
 assign mem02 = mem[9];
@@ -241,9 +256,13 @@ assign state_word_count = !word_count_low;
 assign state_cur_addr = !current_address_low;
 assign state_break = !break_low;
 
-mem core_mem(.clk(clk), .mem_start(b_mem_start), .mem_done_n(mem_done_low),
-             .strobe_n(strobe_low), .addr({ea0, ea1, ea2, ma}), 
-             .data_in(mb), .data_out(mem), .dt_ca(dt_ca), .dt_wc(dt_wc));
+//mem_xilinx core_mem(.clk(clk), .mem_start(b_mem_start), .mem_done_n(mem_done_low),
+//                    .strobe_n(strobe_low), .addr({ea0, ea1, ea2, ma}), 
+//                    .data_in(mb), .data_out(mem));
+
+//mem core_mem(.clk(clk), .mem_start(b_mem_start), .mem_done_n(mem_done_low),
+//             .strobe_n(strobe_low), .addr({ea0, ea1, ea2, ma}), 
+//             .data_in(mb), .data_out(mem)/*, .dt_ca(dt_ca), .dt_wc(dt_wc)*/);
 
 wire [11:0] reg_bus;
 
@@ -269,6 +288,7 @@ m113 a06(
     .M2(n3v_lp_67_rp_low), .N1(b_ext_inst), .N2(mb06xmb09), .P1(mb07_low), 
     .P2(n_t_420x), .R1(mb08_low), .R2(n3v_lp_66_rp_low), .S1(n_t_420x), 
     .S2(n_t_422x), .T2(n_t_422x), .U2(mb06xmb09), .V2(rmf_low));
+/*
 m162 a07(
     .A1(n_t_716x), .B1(n_t_713x), .C1(n_t_714x), .D1(n_t_715x), 
     .E1(mem00), .F1(mem01), .H1(mem02), .J1(mem03), 
@@ -293,6 +313,7 @@ m162 a10(.A1(n_t_262x),
     .K2(mb04_low), .L2(mb05_low), .M2(mb06_low), .N2(mb07_low), 
     .P2(mb04), .R2(mb05), .S2(mb06), .T2(mb07), 
     .U2(n_t_690x), .V2(n_t_689x));
+*/
 m113 a11(.A1(mem_ext), .B1(mb11), 
     .C1(n_t_490x), .D1(n_t_459x), .D2(rib), .E1(df0), 
     .E2(sf0), .F1(n_t_464x), .F2(n_t_463x), .H1(n_t_460x), 
@@ -406,6 +427,8 @@ m113 b06(
     .N2(n_t_556x), .P1(s_uf), .P2(ub), .R1(sf_enable), 
     .R2(key_lamfts0_low), .S1(n_t_555x), .S2(n_t_559x), .T2(n_t_559x), 
     .U2(n3v_lp_63_rp_low), .V2(n_t_560x));
+// eliminated memory parity option
+/*
 m115 b07(.A1(mb03_low), .B1(mb04_low), 
     .C1(mb05), .D1(n_t_693x), .D2(mb06_low), .E1(iop4), 
     .E2(mb07_low), .F1(n3v_lp_07_rp_low), .F2(mb08_low), .H1(n_t_697x), 
@@ -428,16 +451,27 @@ m113 b09(
     .J2(n_t_694x), .K1(n_t_695x), .K2(n_t_696x), .L1(n_t_695x), 
     .L2(n_t_698x), .M1(n_t_696x), .M2(n3v_lp_07_rp_low), .N1(n_t_698x), 
     .N2(n_t_697x), .P1(mem_parity_even_low), .R1(n3v_lp_06_rp_low), .S1(n_t_26x));
+*/
 /*
 m720 b10(
     .D2(mem_done_low), .E2(strobe_low), .J2(run), .V2(tp3));
 */
+/*
 m216 b11(.clk(clk), 
     .A1(n3v_lp_08_rp_low), .B1(n_t_412x), .C1(if_enable_low), .D1(manual_preset_low), 
     .D2(n_t_412x), .E2(df_enable_low), .F1(if_enable), .F2(manual_preset_low), 
     .H1(n_t_412x), .J1(b_set_low), .J2(df_enable), .K1(manual_preset_low), 
     .K2(n3v_lp_07_rp_low), .L2(tp3), .M1(bf_enable), .M2(n_t_26x), 
     .N1(n_t_27x), .N2(clr_parity_error_low), .P1(1'b0), .P2(mp_int_low), 
+    .R1(ib_to_if_low), .S1(int_inhibit_low));
+*/
+// eliminated memory parity option
+m216 b11(.clk(clk), 
+    .A1(n3v_lp_08_rp_low), .B1(n_t_412x), .C1(if_enable_low), .D1(manual_preset_low), 
+    .D2(n_t_412x), .E2(df_enable_low), .F1(if_enable), .F2(manual_preset_low), 
+    .H1(n_t_412x), .J1(b_set_low), .J2(df_enable), .K1(manual_preset_low), 
+    .K2(n3v_lp_07_rp_low), .M1(bf_enable),
+    .N1(n_t_27x), .P1(1'b0),
     .R1(ib_to_if_low), .S1(int_inhibit_low));
 m617 b12(.A1(mb00), .B1(n3v_lp_08_rp_low), 
     .C1(n3v_lp_08_rp_low), .D1(n3v_lp_08_rp_low), .D2(mb01), .E1(mcbmb00_low), 
@@ -677,7 +711,6 @@ m216 c24(.clk(clk), .A1(n3v_lp_27_rp_low), .B1(mq_load),
 m516 d05_(.A1(lhs_low), .B1(lhs_low), 
     .C1(lhs_low), .D1(lhs_low), .D2(b_r0_low), .E1(lhs), 
     .E2(b_r0_low), .F2(b_r0_low), .H2(b_r0_low), .J2(r0));
-*/
 m310 d06_(
     .clk(clk), .E1(n_t_4x), .F1(lh_to_hs), .H2(n_t_3x), .R2(n_t_4x));
 m113 d07_(
@@ -687,7 +720,6 @@ m113 d07_(
     .P1(n3v_lp_58_rp_low), .P2(n3v_lp_58_rp_low), .R1(lh_to_hs), .R2(n_t_2x), 
     .S1(n_t_5x), .S2(n_t_3x), .T2(s), .U2(tp1), 
     .V2(n_t_2x));
-/*
 m115 d09_(.A1(s), .B1(ts2), .C1(mem09), 
     .D1(n_t_726x), .D2(ts3), .E1(n_t_733x), .E2(c), 
     .F1(iot), .F2(mb11_low), .H1(n3v_lp_58_rp_low), .H2(tt_carry_insert_c_low), 
@@ -869,12 +901,10 @@ m113 e15(.A1(mftp2), .B1(key_la_low),
     .V2(mfts3));
 m310 e16(.clk(clk), .E1(n_t_14x), .F1(n_t_18x), .H2(n_t_17x), 
     .R2(n_t_14x));
-/* swapped e09f1 for tp1
 m310 e17(.clk(clk), .E1(n_t_22x), .F1(tp2), .H1(n_t_748x), 
     .H2(e09f1), .J1(tp3), .M2(n_t_22x), .U2(n_t_748x));
-*/
-m310 e17(.clk(clk), .E1(n_t_22x), .F1(tp2), .H1(n_t_748x), 
-    .H2(tp1), .J1(tp3), .M2(n_t_22x), .U2(n_t_748x));
+//m310 e17(.clk(clk), .E1(n_t_22x), .F1(tp2), .H1(n_t_748x), 
+//    .H2(tp1), .J1(tp3), .M2(n_t_22x), .U2(n_t_748x));
 m216 e18(.clk(clk), 
     .A1(strobe_low), .B1(tp4), .C1(n3v_lp_35_rp_low), .D1(manual_preset_low), 
     .D2(1'b0), .E1(ts1), .E2(1'b0), .F1(ts1_low), 
@@ -1026,7 +1056,17 @@ m707 ef02(.clk(clk), .AB1(1'b1), .AE1(mb04_low), .AE2(mb03_low),
     .AT2(ac10), .AU1(ac11), .AU2(ac08), .AV2(tx_data), 
     .BD2(iop2), .BE2(initialize), .BF2(n3v_lp_33_rp_low), .BH2(iop1), 
     .BJ1(n3v_lp_33_rp_low), .BJ2(tto_skip_low), .BK2(teleprinter_flag_low), .BN1(out_stop2_low), 
-    .BN2(out_stop2_low), .BP2(tto_clock_low), .BS2(n3v_lp_33_rp_low));
+    .BN2(out_stop2_low), .BP2(tto_clock_low), .BS2(n3v_lp_33_rp_low),
+    .flag(m707_flag),
+    .active(m707_active),
+    .stop2(m707_stop2),
+    .stop15(m707_stop15),
+    .stop1(m707_stop1),
+    .freq_div(m707_freq_div),
+    .line(m707_line),
+    .srbit(m707_srbit),
+    .enable_q(m707_enable_q)
+    );
 m700 ef10(.clk(clk), .AE2(mftp1), 
     .AF2(mfts2), .AH2(mfts2_low), .AJ2(mfts1), .AK2(mfts1_low), 
     .AL2(b_power_clear_low), .AM2(mfts0), .AP2(run_low), .AR2(restart_low), 
@@ -1292,7 +1332,10 @@ m160 f33(
     .L2(link_low), .M1(adder01), .M2(lbar_enable), .N1(double_left_rotate), 
     .N2(ac00), .P1(n3v_lp_48_rp_low), .P2(b_eae_on), .R1(n_t_128x), 
     .R2(asr_enable), .S1(n_t_137x), .S2(eae_ir2_low), .T2(n_t_137x), 
-    .U1(carry_out0), .U2(carry_out0_low), .V1(n_t_129x), .V2(adder_l_low));
+    .U1(carry_out0), .U2(carry_out0_low), .V1(n_t_129x), .V2(adder_l_low_source));
+wire adder_l_low_source;
+reg adder_l_low;
+always @(posedge clk) adder_l_low <= adder_l_low_source;
 m650 h07(
     .D2(bac00), .F2(n3v_lp_49_rp_low), .H2(ac00), .J2(n3v_lp_49_rp_low), 
     .K2(bac01), .M2(n3v_lp_49_rp_low), .N2(ac01), .P2(n3v_lp_49_rp_low), 
@@ -1568,7 +1611,7 @@ wire adder10;
 wire adder11;
 wire adder11_low;
 wire adder_l;
-wire adder_l_low;
+//wire adder_l_low;
 wire and_h;
 wire and_enable;
 wire and_enable_low;
@@ -1584,7 +1627,7 @@ wire b_ext_inst;
 wire b_fetch;
 wire b_left_shift;
 wire b_line_hold_low;
-wire b_mem_start;
+//wire b_mem_start;
 wire b_mem_to_lsr;
 wire b_power_clear_low;
 wire b_r0_low = 1'b1;
@@ -1663,7 +1706,7 @@ wire btt_inst_low;
 wire bwc_overflow;
 wire c;
 wire c_low;
-wire c_no_shift_low;
+wire c_no_shift_low = 1'b1;
 wire c_set_low;
 wire ca_incr_low;
 wire ca_increment;
@@ -1825,8 +1868,8 @@ wire hole5;
 wire hole6;
 wire hole7;
 wire hole8;
-wire hs;
-wire hs_low;
+wire hs = 1'b0;
+wire hs_low = 1'b0;
 wire hz880;
 wire i_iot_low;
 wire ib0;
@@ -1949,7 +1992,7 @@ wire l_enable;
 wire lbar_enable;
 wire left_shift;
 wire left_shift_low;
-wire lh_to_hs;
+//wire lh_to_hs;
 wire lhs;
 wire lhs_low = 1'b1;
 wire line_hold_low;
@@ -2038,7 +2081,7 @@ wire mem08;
 wire mem09;
 wire mem10;
 wire mem11;
-wire mem_done_low;
+//wire mem_done_low;
 wire mem_enable0_4;
 wire mem_enable0_4_low;
 wire mem_enable5_8;
@@ -2130,7 +2173,7 @@ wire n3v_lp_29_rp_low = 1'b1;
 wire n3v_lp_30_rp_low = 1'b1;
 wire n3v_lp_31_rp_low = 1'b1;
 wire n3v_lp_32_rp_low = 1'b1;
-wire n3v_lp_33_rp_low = 1'b1;
+wire n3v_lp_33_rp_low;// = 1'b1;
 wire n3v_lp_34_rp_low = 1'b1;
 wire n3v_lp_35_rp_low = 1'b1;
 wire n3v_lp_36_rp_low = 1'b1;
@@ -2671,7 +2714,6 @@ wire right_shift;
 wire rmf_low;
 wire run;
 wire run_low;
-//wire rx_data;
 wire s = 1'b1;
 wire s_low = 1'b1;
 wire s_set_low;
@@ -2723,7 +2765,7 @@ wire sr11;
 wire sr_enable;
 wire stop_ok = 1'b0;
 wire store_low = 1'b1;
-wire strobe_low;
+//wire strobe_low;
 wire tad;
 wire tad_low;
 wire teleprinter_flag_low;
@@ -2775,7 +2817,6 @@ wire tti_data;
 wire tti_skip_low;
 wire tto_clock_low;
 wire tto_skip_low;
-//wire tx_data;
 wire ub;
 wire uf;
 wire uf_low;

@@ -1,4 +1,4 @@
-module tu55 (
+module tu55_xilinx (
     clk,
     rst,
     tape_pos,
@@ -110,10 +110,25 @@ wire go = !t_go_l;
 wire fwd = !t_fwd_l;
 
 /* 260 feet of tape, 350 lines per inch = 1,092,000 lines */
-localparam MAX_LINES = 1092000;
-reg [3:0] tape [0:MAX_LINES - 1];
-initial $readmemh("tc08_boot/tc08diag.mem", tape);
+//localparam MAX_LINES = 1092000;
+//reg [3:0] tape [0:MAX_LINES - 1];
+//initial $readmemh("tc08_boot/tc08diag.mem", tape);
 //initial $readmemh("tc08_boot/blank.mem", tape);
+
+reg write;
+reg [3:0] write_bits;
+reg [3:0] to_write;
+wire [3:0] tape_in;
+wire [3:0] tape_out;
+assign tape_in = tape_out & ~write_bits | to_write;
+
+blk_mem_tape tape_mem (
+  .clka(clk),
+  .wea(write),
+  .addra(pos[19:0]),
+  .dina(tape_in),
+  .douta(tape_out)
+);
 
 wire [20:0] pos = time_count[61:41];
 reg signed [61:0] time_count;
@@ -131,22 +146,22 @@ assign t_trk_rd_pos =  (tape_fwd) ?  time_count[40] :
                        (tape_rev) ? !time_count[40] : 1'b0;
 assign t_trk_rd_neg =  (tape_fwd) ? !time_count[40] : 
                        (tape_rev) ?  time_count[40] : 1'b0;
-assign rdmk_rd_pos =   (tape_fwd) ?  tape[pos][3] : 
-                       (tape_rev) ? !tape[pos][3] : 1'b0;
-assign rdmk_rd_neg =   (tape_fwd) ? !tape[pos][3] : 
-                       (tape_rev) ?  tape[pos][3] : 1'b0;
-assign rdd_02_rd_pos = (tape_fwd) ?  tape[pos][0] : 
-                       (tape_rev) ? !tape[pos][0] : 1'b0;
-assign rdd_02_rd_neg = (tape_fwd) ? !tape[pos][0] : 
-                       (tape_rev) ?  tape[pos][0] : 1'b0;
-assign rdd_01_rd_pos = (tape_fwd) ?  tape[pos][1] : 
-                       (tape_rev) ? !tape[pos][1] : 1'b0;
-assign rdd_01_rd_neg = (tape_fwd) ? !tape[pos][1] : 
-                       (tape_rev) ?  tape[pos][1] : 1'b0;
-assign rdd_00_rd_pos = (tape_fwd) ?  tape[pos][2] : 
-                       (tape_rev) ? !tape[pos][2] : 1'b0;
-assign rdd_00_rd_neg = (tape_fwd) ? !tape[pos][2] : 
-                       (tape_rev) ?  tape[pos][2] : 1'b0;
+assign rdmk_rd_pos =   (tape_fwd) ?  tape_out[3] : 
+                       (tape_rev) ? !tape_out[3] : 1'b0;
+assign rdmk_rd_neg =   (tape_fwd) ? !tape_out[3] : 
+                       (tape_rev) ?  tape_out[3] : 1'b0;
+assign rdd_02_rd_pos = (tape_fwd) ?  tape_out[0] : 
+                       (tape_rev) ? !tape_out[0] : 1'b0;
+assign rdd_02_rd_neg = (tape_fwd) ? !tape_out[0] : 
+                       (tape_rev) ?  tape_out[0] : 1'b0;
+assign rdd_01_rd_pos = (tape_fwd) ?  tape_out[1] : 
+                       (tape_rev) ? !tape_out[1] : 1'b0;
+assign rdd_01_rd_neg = (tape_fwd) ? !tape_out[1] : 
+                       (tape_rev) ?  tape_out[1] : 1'b0;
+assign rdd_00_rd_pos = (tape_fwd) ?  tape_out[2] : 
+                       (tape_rev) ? !tape_out[2] : 1'b0;
+assign rdd_00_rd_neg = (tape_fwd) ? !tape_out[2] : 
+                       (tape_rev) ?  tape_out[2] : 1'b0;
 
 /* 150 ms */
 localparam START_TIME = 15000000; // 10 ns units
@@ -161,6 +176,9 @@ reg t_trk_rd_pos_old;
 
 always @(posedge clk) begin
     if (rst) begin
+        write <= 1'b0;
+        write_bits <= 0;
+        to_write <= 0;
         motion_state <= MOT_STOP;
         speed <= 0;
         time_count <= {21'o122000, 41'b0}; // keep a bit on the spool initially
@@ -179,18 +197,28 @@ always @(posedge clk) begin
                     //$display("[%t] synchronize: %d", $time, pos);
                 end
             end
+            if (write_bits) 
+                write <= 1'b1;
+            else 
+                write <= 1'b0;
+
+            write_bits <= 0;
             if (!t_trk_rd_pos_old && t_trk_rd_pos) begin
                 if (rdmk_wr_pos ^ rdmk_wr_neg) begin
-                    tape[pos][3] <= rdmk_wr_pos;
+                    to_write[3] <= rdmk_wr_pos;
+                    write_bits[3] <= 1'b1;
                 end
                 if (rdd_02_wr_pos ^ rdd_02_wr_neg) begin
-                    tape[pos][0] <= rdd_02_wr_pos;
+                    to_write[0] <= rdd_02_wr_pos;
+                    write_bits[0] <= 1'b1;
                 end
                 if (rdd_01_wr_pos ^ rdd_01_wr_neg) begin
-                    tape[pos][1] <= rdd_01_wr_pos;
+                    to_write[1] <= rdd_01_wr_pos;
+                    write_bits[1] <= 1'b1;
                 end
                 if (rdd_00_wr_pos ^ rdd_00_wr_neg) begin
-                    tape[pos][2] <= rdd_00_wr_pos;
+                    to_write[2] <= rdd_00_wr_pos;
+                    write_bits[2] <= 1'b1;
                 end
                 //$strobe("[%t] wrote: tape[%d] = %o", $time, pos, tape[pos]);
             end

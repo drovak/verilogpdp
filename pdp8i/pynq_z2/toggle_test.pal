@@ -1,0 +1,23 @@
+        *200
+        CLA IAC         /GET 1
+LOOP,   MQL             /LOAD IN MQ
+        JMS DELAY       /DELAY FOR A BIT
+        CLA MQA         /GET IT BACK
+        RAL             /ROTATE IT
+        SNA             /IS IT IN LINK?
+        RAL             /YES, GET IT OUT OF THERE
+        JMP LOOP        /AND REPEAT
+
+DELAY,  0
+        TAD DEL1        /GET A DELAY VALUE
+        DCA CNT1        /SAVE IT
+        DCA CNT2        /SET OTHER VALUE TO ZERO
+        ISZ CNT2        /COUNT 4096 TIMES
+        JMP .-1
+        ISZ CNT1        /COUNT -DEL1 TIMES
+        JMP .-3
+        JMP I DELAY     /AND RETURN
+DEL1,   -10
+CNT1,   .-.
+CNT2,   .-.
+        $

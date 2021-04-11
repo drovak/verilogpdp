@@ -1,10 +1,16 @@
-module top
+module system
 (
     input clk,
     input rst,
-    input wire [2:0] dfsr,
-    input wire [2:0] ifsr,
-    input wire [11:0] sr,
+
+    input write_enable,
+
+    input rx_data,
+    output tx_data,
+
+    input [2:0] dfsr,
+    input [2:0] ifsr,
+    input [11:0] sr,
     input start,
     input stop,
     input load_addr,
@@ -14,6 +20,7 @@ module top
     input step,
     input sing_step,
     input sing_inst,
+
     output ion,
     output pause,
     output run,
@@ -39,21 +46,14 @@ module top
     output [12:0] lac,
     output [4:0] sc,
     output [11:0] mq,
-    input [7:0] data_to_pdp,
-    input data_to_pdp_strobe,
-    output data_to_pdp_ready,
-    output [7:0] data_from_pdp,
-    output data_from_pdp_strobe,
 
-    output tp3,
-    //output [11:0] dt_wc,
-    //output [11:0] dt_ca,
-    //output [11:0] dtsa,
-    //output [11:0] dtsb,
-    output [14:0] mem_addr,
+    output [14:0] last_break_addr,
+    output [11:0] last_break_data,
 
     // TC08 timing track write switch
     input swtm,
+
+    // TU55 current tape position
     output [20:0] tape_pos,
 
     // TC08 diagnostic panel
@@ -91,53 +91,20 @@ module top
     output mkt, 
     output [9:1] w,
 
-    output ind_swtm
+    output ind_swtm,
+
+    output m707_flag,
+    output m707_active,
+    output m707_stop2,
+    output m707_stop15,
+    output m707_stop1,
+    output m707_freq_div,
+    output m707_line,
+    output [7:0] m707_srbit,
+    output m707_enable_q
 );
 
 /* verilator lint_off UNUSED */
-
-//assign dtsa = {usr, mr, fr, eni, 2'b0};
-//assign dtsb = {ef, mktk, end_h, sel, par, tim, mf, 2'b0, dtf};
-
-wire rx_data = !tx_pad;
-wire tx_data;
-
-wire rx_pad = !tx_data;
-wire tx_pad;
-
-pullup(i_o_0_to_ac_l);
-pullup(i_o_brk_rq_l);
-pullup(i_o_int_rq_l);
-pullup(i_o_skp_rq_l);
-pullup(i_o_data_in);
-pullup(i_o_1_to_ca_inh_l);
-pullup(ea_00_l);
-pullup(ea_01_l);
-pullup(ea_02_l);
-pullup(db_00_l);
-pullup(db_01_l);
-pullup(db_02_l);
-pullup(db_03_l);
-pullup(db_04_l);
-pullup(db_05_l);
-pullup(db_06_l);
-pullup(db_07_l);
-pullup(db_08_l);
-pullup(db_09_l);
-pullup(db_10_l);
-pullup(db_11_l);
-pullup(im_00_l);
-pullup(im_01_l);
-pullup(im_02_l);
-pullup(im_03_l);
-pullup(im_04_l);
-pullup(im_05_l);
-pullup(im_06_l);
-pullup(im_07_l);
-pullup(im_08_l);
-pullup(im_09_l);
-pullup(im_10_l);
-pullup(im_11_l);
 
 wire iop_1;
 wire iop_2;
@@ -201,14 +168,40 @@ wire i_o_bmb_06_l = io_bmb_l[5];
 wire i_o_bmb_07_l = io_bmb_l[4];
 wire i_o_bmb_08_l = io_bmb_l[3];
 
-assign mem_addr = {mem_ea, ma};
+wire tp3;
+
 wire mem_start, mem_done_l, mem_strobe_l;
 wire [2:0] mem_ea;
 wire [11:0] mem;
 
-mem core_mem(.clk(clk), .mem_start(mem_start), .mem_done_n(mem_done_l),
-             .strobe_n(mem_strobe_l), .addr({mem_ea, ma}), 
-             .data_in(mb), .data_out(mem));
+mem_xilinx core_mem(.clk(clk), .mem_start(mem_start), .mem_done_n(mem_done_l),
+                    .strobe_n(mem_strobe_l), .addr({mem_ea, ma}), 
+                    .data_in(mb), .data_out(mem));
+
+reg [14:0] last_break_addr;
+reg [11:0] last_break_data;
+reg old_tp3;
+always @(posedge clk) begin
+    old_tp3 <= tp3;
+    if (state_break && tp3 && !old_tp3) begin
+        last_break_addr <= {mem_ea, ma};
+        last_break_data <= mb;
+    end
+    if (rst) begin
+        last_break_addr <= 0;
+        last_break_data <= 0;
+    end
+end
+
+//wire m707_flag;
+//wire m707_active;
+//wire m707_stop2;
+//wire m707_stop15;
+//wire m707_stop1;
+//wire m707_freq_div;
+//wire m707_line;
+//wire [7:0] m707_srbit;
+//wire m707_enable_q;
 
 pdp8i pdp(clk, rst, dfsr, ifsr, sr, start, stop, load_addr, dep,
           exam, cont, step, sing_step, sing_inst, ion, pause, run,
@@ -216,30 +209,18 @@ pdp8i pdp(clk, rst, dfsr, ifsr, sr, start, stop, load_addr, dep,
           inst_jmp, inst_iot, inst_opr, state_fetch, state_defer,
           state_execute, state_word_count, state_cur_addr, state_break,
           dataf, instf, pc, ma, mb, lac, sc, mq, tp3, rx_data, tx_data,
-          mem_start, mem_done_l, mem_strobe_l, mem_ea, mem,
+          mem_start, mem_done_l, mem_strobe_l, mem_ea, mem,          
           iop_1, iop_2, iop_4, i_o_ts03, i_o_ts04, i_o_pwr_clr, i_o_addr_acc_l,
           i_o_bwc0_l, i_o_b_brk, i_o_b_run, io_bac, io_bmb, io_bmb_l, 
           1'b0, 1'b1, i_o_0_to_ac_l, i_o_1_to_ca_inh_l, i_o_brk_rq_l, 
           i_o_data_in, i_o_int_rq_l, i_o_skp_rq_l, ~12'o7754,
-          db_l, ea_l, im_l);
+          db_l, ea_l, im_l, m707_flag, m707_active, m707_stop2,
+          m707_stop15, m707_stop1, m707_freq_div, m707_line, m707_srbit, m707_enable_q);
 
 wire t_single_unit_l = 1'b0;
 wire t_write_ok_l;
 wire t_00_l, t_01_l, t_02_l, t_03_l, t_04_l, t_05_l, t_06_l, t_07_l;
 wire t_fwd_l, t_go_l, t_pwr_clr_l, t_rev_l, t_stop_l;
-pullup(t_00_l);
-pullup(t_01_l);
-pullup(t_02_l);
-pullup(t_03_l);
-pullup(t_04_l);
-pullup(t_05_l);
-pullup(t_06_l);
-pullup(t_07_l);
-pullup(t_fwd_l);
-pullup(t_go_l);
-pullup(t_pwr_clr_l);
-pullup(t_rev_l);
-pullup(t_stop_l);
 wire t_trk_rd_pos;
 wire t_trk_rd_neg;
 wire rdmk_rd_pos;
@@ -282,8 +263,8 @@ wire
     c00, c01, 
     w01, w02, w03, w04, w05, w06, w07, w08, w09;
 
-tu55 tu55_1 (.clk(clk), .rst(rst), .t_fwd_l(t_fwd_l), .t_go_l(t_go_l),
-    .write_enable(1'b1), .t_write_ok_l(t_write_ok_l),
+tu55_xilinx tu55_1 (.clk(clk), .rst(rst), .t_fwd_l(t_fwd_l), .t_go_l(t_go_l),
+    .write_enable(write_enable), .t_write_ok_l(t_write_ok_l),
     .tape_pos(tape_pos),
 
     .t_trk_wr_pos(t_trk_wr_pos), 
@@ -309,7 +290,7 @@ tu55 tu55_1 (.clk(clk), .rst(rst), .t_fwd_l(t_fwd_l), .t_go_l(t_go_l),
     .rdd_00_rd_neg(rdd_00_rd_neg)
 );
     
-tc08 tc (
+tc08_xilinx tc (
     clk,
     rst,
 
@@ -402,12 +383,6 @@ tc08 tc (
     ind_swtm 
 );
 /* lint_on */
-
-uart_tx #(.CLK_FREQ(100000000), .BAUD_RATE(9600)) tx(.clk(clk), .pad(tx_pad), 
-          .data(data_to_pdp), .strobe(data_to_pdp_strobe), .ready(data_to_pdp_ready));
-
-uart_rx #(.CLK_FREQ(100000000), .BAUD_RATE(9600)) rx(.clk(clk), .pad(rx_pad), 
-          .data(data_from_pdp), .strobe(data_from_pdp_strobe));
 
 endmodule
 

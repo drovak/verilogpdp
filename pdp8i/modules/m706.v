@@ -84,7 +84,8 @@ output AU2, BL2, BH2, AF2, BE2, AE2, BN2, AN2,
        BV2, BS1, BT2, AM2, AK1, BN1, AV1, BS2,
        AS1;
 
-output AD1 = 1'b1; // +3V output
+output AD1; // +3V output
+assign AD1 = 1'b1;
 
 input clk;
 
@@ -110,7 +111,8 @@ assign AM2 = !ser_in;
 wire en = BR1;
 wire skp_strobe = BD2;
 
-wire dev_sel_en = !(!&dev_sel & AP1);
+//wire dev_sel_en = !(!&dev_sel & AP1);
+wire dev_sel_en = !(!(dev_sel == 6'o77) & AP1);
 wire buffer_strobe = dev_sel_en & read_buf;
 assign AV1 = buffer_strobe;
 assign BN1 = !(buffer_strobe & BM1);

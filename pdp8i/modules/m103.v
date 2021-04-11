@@ -43,7 +43,8 @@ module m103 (
 
 assign V1 = 1'b1;
 
-wire sel = !(U2 & !&{D2, E2, F2, H2, J2, K2, L2, N2});
+//wire sel = !(U2 & !&{D2, E2, F2, H2, J2, K2, L2, N2});
+wire sel = !(U2 & !({D2, E2, F2, H2, J2, K2, L2, N2} == 8'o377));
 assign V2 = sel;
 
 assign K1 = !(H1 & J1);
