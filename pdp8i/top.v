@@ -210,6 +210,7 @@ mem core_mem(.clk(clk), .mem_start(mem_start), .mem_done_n(mem_done_l),
              .strobe_n(mem_strobe_l), .addr({mem_ea, ma}), 
              .data_in(mb), .data_out(mem));
 
+/* verilator lint_off PINMISSING */
 pdp8i pdp(clk, rst, dfsr, ifsr, sr, start, stop, load_addr, dep,
           exam, cont, step, sing_step, sing_inst, ion, pause, run,
           inst_and, inst_tad, inst_isz, inst_dca, inst_jms,
@@ -281,6 +282,7 @@ wire
     lpb_00, lpb_01, lpb_02, lpb_03, lpb_04, lpb_05, 
     c00, c01, 
     w01, w02, w03, w04, w05, w06, w07, w08, w09;
+/* lint_on */
 
 tu55 tu55_1 (.clk(clk), .rst(rst), .t_fwd_l(t_fwd_l), .t_go_l(t_go_l),
     .write_enable(1'b1), .t_write_ok_l(t_write_ok_l),
