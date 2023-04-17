@@ -11,6 +11,7 @@
 #include "Vtop__Syms.h"
 #include "Vtop.h"
 #include "control.h"
+#include "verilated_vcd_c.h"
 
 // prints time and octal value of character received for debugging
 //#define VERBOSE_PRINT
@@ -99,10 +100,9 @@ int main(int argc, char** argv, char** env) {
     Verilated::commandArgs(argc, argv);
 
     Vtop *top = new Vtop;
-
 #if VM_TRACE
-	VerilatedVcdC* tfp = nullptr;
-	const char* flag = Verilated::commandArgsPlusMatch("trace");
+    VerilatedVcdC* tfp = nullptr;
+    const char* flag = Verilated::commandArgsPlusMatch("trace");
     if (flag && 0 == strcmp(flag, "+trace")) {
 		tfp = new VerilatedVcdC;
 		top->trace(tfp, 99);
