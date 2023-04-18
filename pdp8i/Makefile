@@ -35,9 +35,10 @@ VERILATOR_FLAGS += -cc --exe
 # Generate makefile dependencies (not shown as complicates the Makefile)
 #VERILATOR_FLAGS += -MMD
 # Optimize
-VERILATOR_FLAGS += -CFLAGS -O3 -x-assign 0 --unroll-count 90000
+#VERILATOR_FLAGS += -CFLAGS -O3 -x-assign 0 --unroll-count 90000
+VERILATOR_FLAGS += -O3 -x-assign fast --x-initial fast --noassert --unroll-count 90000
 # Multithreading doesn't really seem to improve the speed...
-VERILATOR_FLAGS += --threads 2
+VERILATOR_FLAGS += --threads 4
 # Warn abount lint issues; may not want this on less solid designs
 VERILATOR_FLAGS += -Wall
 # Make waveforms
