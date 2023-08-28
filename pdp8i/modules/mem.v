@@ -11,9 +11,9 @@ module mem (
 	output reg [11:0] data_out
     //output [11:0] dt_ca,
     //output [11:0] dt_wc
-	);
+);
 
-reg [11:0] ram [0:32767];
+reg [11:0] ram [0:32767] /* verilator public_flat */;
 //assign dt_wc = ram[15'o7754];
 //assign dt_ca = ram[15'o7755];
 

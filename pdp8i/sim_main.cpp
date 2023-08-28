@@ -7,9 +7,11 @@
 #include <termio.h>
 #include <ctype.h>
 #include <signal.h>
-#include "verilated_vcd_c.h"
+#include "Vtop___024root.h"
+#include "Vtop__Syms.h"
 #include "Vtop.h"
 #include "control.h"
+#include "verilated_vcd_c.h"
 
 // prints time and octal value of character received for debugging
 //#define VERBOSE_PRINT
@@ -99,8 +101,8 @@ int main(int argc, char** argv, char** env) {
 
     Vtop *top = new Vtop;
 #if VM_TRACE
-	VerilatedVcdC* tfp = nullptr;
-	const char* flag = Verilated::commandArgsPlusMatch("trace");
+    VerilatedVcdC* tfp = nullptr;
+    const char* flag = Verilated::commandArgsPlusMatch("trace");
     if (flag && 0 == strcmp(flag, "+trace")) {
 		tfp = new VerilatedVcdC;
 		top->trace(tfp, 99);
@@ -180,7 +182,7 @@ int main(int argc, char** argv, char** env) {
 #else
     printf("logging disabled\n");
 #endif
-    mem = top->top__DOT__core_mem__DOT__ram;
+    mem = &top->rootp->top__DOT__core_mem__DOT__ram[0];
     top->clk = 0;
 	top->rst = 1;
 	top->start = 0;
@@ -270,7 +272,7 @@ int main(int argc, char** argv, char** env) {
                         printf("dumping tape...");
                         fflush(stdout);
                         for (int i = 0; i < 1092000; i++)
-                            fprintf(fp, "%x\n", top->top__DOT__tu55_1__DOT__tape[i]);
+                            fprintf(fp, "%x\n", top->rootp->top__DOT__tu55_1__DOT__tape[i]);
                         fclose(fp);
                         printf("done\n");
                     }
@@ -381,10 +383,10 @@ int main(int argc, char** argv, char** env) {
         old_run = top->run;
 
         // increment cycle count at every TP4
-        if (!old_tp4 && top->top__DOT__pdp__DOT__tp4) {
+        if (!old_tp4 && top->rootp->top__DOT__pdp__DOT__tp4) {
             cycle_count++;
         }
-        old_tp4 = top->top__DOT__pdp__DOT__tp4;
+        old_tp4 = top->rootp->top__DOT__pdp__DOT__tp4;
 
 		for (int clk = 0; clk < 2; clk++)
 		{

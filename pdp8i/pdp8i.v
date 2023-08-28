@@ -2773,7 +2773,7 @@ wire tp1;
 wire tp2;
 wire tp2e_low;
 wire tp3;
-wire tp4;
+wire tp4 /* verilator public_flat */;
 wire ts1;
 wire ts1_low;
 wire ts2;

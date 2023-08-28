@@ -111,7 +111,7 @@ wire fwd = !t_fwd_l;
 
 /* 260 feet of tape, 350 lines per inch = 1,092,000 lines */
 localparam MAX_LINES = 1092000;
-reg [3:0] tape [0:MAX_LINES - 1];
+reg [3:0] tape [0:MAX_LINES - 1] /* verilator public_flat */;
 initial $readmemh("tc08_boot/tc08diag.mem", tape);
 //initial $readmemh("tc08_boot/blank.mem", tape);
 
